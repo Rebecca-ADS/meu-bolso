@@ -70,3 +70,50 @@ Recursos avançados, como integração bancária, notificações e metas finance
 - A exclusão atualiza os valores apresentados.
 - Usuários não conseguem acessar dados financeiros de outras contas.
 - As funcionalidades principais são testadas e documentadas.
+
+### Fundamentação Matemática
+
+O sistema Meu Bolso utilizará conceitos de matemática financeira e aritmética para realizar o controle das movimentações financeiras dos usuários.
+
+Os principais cálculos serão:
+
+- **Saldo financeiro:** diferença entre o total de receitas e o total de despesas.
+- **Percentual de despesas:** proporção das despesas em relação às receitas.
+- **Consolidação por período:** soma das receitas e despesas por dia, mês ou ano.
+- **Distribuição por categoria:** totalização das despesas conforme suas categorias.
+- **Comparação financeira:** análise das variações entre períodos para auxiliar o acompanhamento das finanças pessoais.
+
+Os cálculos serão realizados pela aplicação em PHP a partir dos dados armazenados no banco de dados MySQL. Os resultados serão apresentados em valores monetários, indicadores e gráficos, contribuindo para a organização e a tomada de decisões financeiras.
+
+Quando não houver receitas registradas, o sistema deverá evitar divisão por zero no cálculo dos percentuais.
+
+
+## Requisitos de Segurança
+
+O sistema Meu Bolso deverá adotar medidas de segurança para proteger os dados pessoais e financeiros dos usuários, reduzir vulnerabilidades comuns em aplicações web e garantir que cada usuário tenha acesso somente às informações autorizadas.
+
+### Requisitos não funcionais de segurança
+
+- **RNF-S01 — Proteção de senhas:** as senhas deverão ser armazenadas por meio de funções próprias para hash seguro, como `password_hash()`, sendo verificadas com `password_verify()`.
+- **RNF-S02 — Segurança das consultas:** as operações com o banco de dados deverão utilizar consultas preparadas, preferencialmente por meio da biblioteca PDO, para reduzir o risco de SQL Injection.
+- **RNF-S03 — Controle de acesso:** o sistema deverá verificar a autenticação e a autorização antes de permitir o acesso a páginas e operações restritas.
+- **RNF-S04 — Privacidade dos dados:** cada usuário deverá acessar exclusivamente suas próprias transações financeiras, impedindo consultas ou alterações de dados pertencentes a terceiros.
+- **RNF-S05 — Validação de entradas:** os dados recebidos dos formulários deverão ser validados no servidor antes de serem processados ou armazenados.
+- **RNF-S06 — Prevenção contra XSS:** os dados dinâmicos exibidos nas páginas deverão ser tratados adequadamente para reduzir o risco de execução de scripts maliciosos.
+- **RNF-S07 — Proteção contra CSRF:** as operações que alterem dados deverão utilizar mecanismos de proteção contra requisições forjadas, como tokens CSRF.
+- **RNF-S08 — Gerenciamento de sessões:** as sessões deverão ser configuradas de forma segura, com regeneração do identificador após a autenticação e encerramento adequado no logout.
+- **RNF-S09 — Proteção de cookies:** os cookies deverão armazenar apenas informações necessárias, sem senhas ou dados financeiros sensíveis. Os cookies de sessão deverão utilizar atributos de segurança adequados ao ambiente de execução.
+- **RNF-S10 — Proteção de credenciais:** as credenciais do banco de dados e demais segredos não deverão ser publicados no repositório de código-fonte.
+- **RNF-S11 — Comunicação segura:** em ambiente de produção, o sistema deverá utilizar HTTPS para proteger os dados transmitidos entre o navegador e o servidor.
+
+### Regras de negócio relacionadas à segurança
+
+- **RN-S01:** somente usuários autenticados poderão acessar as funcionalidades financeiras privadas.
+- **RN-S02:** toda operação sobre uma transação deverá verificar se ela pertence ao usuário autenticado.
+- **RN-S03:** o sistema não deverá armazenar senhas em texto puro.
+- **RN-S04:** o logout deverá encerrar a sessão autenticada, impedindo o acesso às páginas privadas sem nova autenticação.
+
+### Critérios de verificação
+
+A segurança deverá ser verificada por meio de testes de login, logout, acesso não autorizado, isolamento das transações entre usuários, validação de formulários e tratamento seguro dos dados exibidos nas páginas.
+
