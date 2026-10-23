@@ -1,29 +1,24 @@
 
--- 1. Criar o banco de dados
-CREATE DATABASE IF NOT EXISTS meu_bolso;
+CREATE DATABASE IF NOT EXISTS meu_bolso
+    CHARACTER SET utf8mb4
+    COLLATE utf8mb4_unicode_ci;
 
--- 2. Selecionar o banco
 USE meu_bolso;
 
--- 3. Tabela de usuários
 CREATE TABLE usuarios (
     id_usuario INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
     email VARCHAR(150) NOT NULL UNIQUE,
     senha_hash VARCHAR(255) NOT NULL,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 4. Tabela de categorias
 CREATE TABLE categorias (
     id_categoria INT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(80) NOT NULL,
-    tipo VARCHAR(10) NOT NULL,
-    CONSTRAINT chk_categoria_tipo
-        CHECK (tipo IN ('receita', 'despesa'))
-);
+    tipo VARCHAR(10) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- 5. Tabela de transações
 CREATE TABLE transacoes (
     id_transacao INT AUTO_INCREMENT PRIMARY KEY,
     id_usuario INT NOT NULL,
@@ -34,12 +29,6 @@ CREATE TABLE transacoes (
     data_transacao DATE NOT NULL,
     criado_em DATETIME DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT chk_transacao_tipo
-        CHECK (tipo IN ('receita', 'despesa')),
-
-    CONSTRAINT chk_transacao_valor
-        CHECK (valor > 0),
-
     CONSTRAINT fk_transacao_usuario
         FOREIGN KEY (id_usuario)
         REFERENCES usuarios(id_usuario),
@@ -47,4 +36,6 @@ CREATE TABLE transacoes (
     CONSTRAINT fk_transacao_categoria
         FOREIGN KEY (id_categoria)
         REFERENCES categorias(id_categoria)
-);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
