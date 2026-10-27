@@ -82,6 +82,75 @@ class Transacao
         ];
     }
 
+    public function contarPeriodo(int $idUsuario, ?string $inicio, ?string $fim): int
+    {
+        $sql = "SELECT COUNT(*) FROM transacoes WHERE id_usuario = :id_usuario";
+        $params = ['id_usuario' => $idUsuario];
+
+        if ($inicio !== null && $fim !== null) {
+            $sql .= " AND data_transacao BETWEEN :inicio AND :fim";
+            $params['inicio'] = $inicio;
+            $params['fim'] = $fim;
+        }
+
+        $stmt = $this->conexao->prepare($sql);
+        $stmt->execute($params);
+
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function listarPeriodo(
+        int $idUsuario,
+        ?string $inicio,
+        ?string $fim,
+        int $limite,
+        int $offset
+    ): array {
+        $sql = "SELECT t.id_transacao, t.tipo, t.descricao, t.valor,
+                       t.data_transacao, c.nome AS categoria
+                FROM transacoes t
+                INNER JOIN categorias c ON c.id_categoria = t.id_categoria
+                WHERE t.id_usuario = :id_usuario";
+
+        if ($inicio !== null && $fim !== null) {
+            $sql .= " AND t.data_transacao BETWEEN :inicio AND :fim";
+        }
+
+        $sql .= " ORDER BY t.data_transacao DESC, t.id_transacao DESC
+                  LIMIT :limite OFFSET :offset";
+
+        $stmt = $this->conexao->prepare($sql);
+        $stmt->bindValue(':id_usuario', $idUsuario, PDO::PARAM_INT);
+
+        if ($inicio !== null && $fim !== null) {
+            $stmt->bindValue(':inicio', $inicio);
+            $stmt->bindValue(':fim', $fim);
+        }
+
+        $stmt->bindValue(':limite', $limite, PDO::PARAM_INT);
+        $stmt->bindValue(':offset', $offset, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetchAll();
+    }
+
+    public function buscar(int $idTransacao, int $idUsuario): ?array
+    {
+        $stmt = $this->conexao->prepare(
+            "SELECT t.id_transacao, t.tipo, t.descricao, t.valor,
+                    t.data_transacao, t.criado_em, c.nome AS categoria
+             FROM transacoes t
+             INNER JOIN categorias c ON c.id_categoria = t.id_categoria
+             WHERE t.id_transacao = :id AND t.id_usuario = :id_usuario
+             LIMIT 1"
+        );
+        $stmt->execute(['id' => $idTransacao, 'id_usuario' => $idUsuario]);
+
+        $linha = $stmt->fetch();
+
+        return $linha === false ? null : $linha;
+    }
+
     public function excluir(int $idTransacao, int $idUsuario): bool
     {
         $stmt = $this->conexao->prepare(

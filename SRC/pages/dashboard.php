@@ -162,6 +162,7 @@ function moeda(float $valor): string
         th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #e5eaf2; }
         th { font-size: 13px; color: #65738a; }
         td.valor { white-space: nowrap; font-weight: bold; }
+        td a { color: #0866c6; }
 
         .excluir {
             padding: 6px 10px;
@@ -180,6 +181,7 @@ function moeda(float $valor): string
         <h1>Meu Bolso</h1>
         <div>
             Olá, <?= e((string) $_SESSION['usuario_nome']) ?> |
+            <a href="historico.php">Histórico</a> |
             <a href="logout.php">Sair</a>
         </div>
     </header>
@@ -221,7 +223,10 @@ function moeda(float $valor): string
         <section class="painel">
             <div class="topo-painel">
                 <h2>Últimos lançamentos</h2>
-                <a class="botao" href="nova_transacao.php">+ Novo lançamento</a>
+                <div>
+                    <a class="botao" href="historico.php">Ver histórico</a>
+                    <a class="botao" href="nova_transacao.php">+ Novo lançamento</a>
+                </div>
             </div>
 
             <?php if ($ultimos === []): ?>
@@ -236,6 +241,7 @@ function moeda(float $valor): string
                                 <th>Categoria</th>
                                 <th>Valor</th>
                                 <th></th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -247,6 +253,9 @@ function moeda(float $valor): string
                                 <td><?= e($t['categoria']) ?></td>
                                 <td class="valor <?= $ehReceita ? 'positivo' : 'negativo' ?>">
                                     <?= $ehReceita ? '+' : '-' ?> <?= e(moeda((float) $t['valor'])) ?>
+                                </td>
+                                <td>
+                                    <a href="detalhes.php?id=<?= (int) $t['id_transacao'] ?>">Detalhes</a>
                                 </td>
                                 <td>
                                     <form
