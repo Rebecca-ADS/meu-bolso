@@ -2,6 +2,11 @@
 
 Aplicação web de controle financeiro pessoal, desenvolvida em PHP e MySQL. Permite registrar receitas e despesas, acompanhar o saldo e visualizar os gastos por categoria.
 
+## Documentação
+
+- [Levantamento de requisitos](docs/levantamento-requisitos.md)
+- [Documentação do banco de dados](database/documentacao-banco-de-dados.md)
+
 ## Funcionalidades
 
 - Cadastro de usuário, login e logout
