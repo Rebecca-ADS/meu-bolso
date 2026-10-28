@@ -62,15 +62,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $usuarioObj = new Usuario($pdo);
 
                 if ($usuarioObj->cadastrar($nome, $email, $senha)) {
-                    $mensagem = 'Conta criada com sucesso!';
-                    $tipoMensagem = 'sucesso';
-
-                    // Renova o token após o cadastro.
+                    // Renova o token e guarda o aviso para o login mostrar.
                     $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+                    $_SESSION['flash_login'] = 'Conta criada com sucesso! Entre com seu e-mail e senha.';
 
-                    // Limpa os campos.
-                    $nome = '';
-                    $email = '';
+                    header('Location: login.php');
+                    exit;
                 } else {
                     $mensagem = 'Este e-mail já está cadastrado.';
                     $tipoMensagem = 'erro';
@@ -297,3 +294,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </main>
 </body>
 </html>
+

@@ -20,6 +20,10 @@ if (empty($_SESSION['csrf_token'])) {
 $mensagem = '';
 $email = '';
 
+// Aviso vindo do cadastro (aparece uma única vez).
+$aviso = $_SESSION['flash_login'] ?? '';
+unset($_SESSION['flash_login']);
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $token = $_POST['csrf_token'] ?? '';
     $emailPost = $_POST['email'] ?? '';
@@ -119,6 +123,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             background: #f8d7da;
         }
 
+        .aviso-ok {
+            margin-bottom: 18px;
+            padding: 12px;
+            border-radius: 8px;
+            line-height: 1.4;
+            color: #0f5132;
+            background: #d1e7dd;
+        }
+
         .campo {
             margin-bottom: 18px;
         }
@@ -186,6 +199,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         <p class="descricao">Acesse sua conta para ver suas finanças.</p>
 
+        <?php if ($aviso !== ''): ?>
+            <p class="aviso-ok" role="status">
+                <?= htmlspecialchars($aviso, ENT_QUOTES, 'UTF-8') ?>
+            </p>
+        <?php endif; ?>
+
         <?php if ($mensagem !== ''): ?>
             <p class="mensagem" role="alert">
                 <?= htmlspecialchars($mensagem, ENT_QUOTES, 'UTF-8') ?>
@@ -228,8 +247,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="links">
-          <a href="cadastro.php">Criar uma conta</a><br>
-        <a href="../index.php">Voltar para a página inicial</a> 
+            <a href="cadastro.php">Criar uma conta</a><br>
+            <a href="../index.php">Voltar para a página inicial</a>
         </div>
     </main>
 </body>
