@@ -180,10 +180,11 @@ function moeda(float $valor): string
     <header>
         <h1>Meu Bolso</h1>
         <div>
-            Olá, <?= e((string) $_SESSION['usuario_nome']) ?> |
-            <a href="historico.php">Histórico</a> |
-            <a href="logout.php">Sair</a>
-        </div>
+    Olá, <?= e((string) $_SESSION['usuario_nome']) ?> |
+    <a href="historico.php">Histórico</a> |
+    <a href="graficos.php">Gráficos</a> |
+    <a href="logout.php">Sair</a>
+</div>
     </header>
 
     <main>
