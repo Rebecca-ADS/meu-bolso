@@ -228,8 +228,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="links">
-            <a href="cadastro.php">Criar uma conta</a><br>
-            <a href="../index.php">Voltar para a página inicial</a>
+          <a href="cadastro.php">Criar uma conta</a><br>
+        <a href="../index.php">Voltar para a página inicial</a> 
         </div>
     </main>
 </body>
