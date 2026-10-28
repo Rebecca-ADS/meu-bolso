@@ -3,6 +3,8 @@
 ## 1. Descrição do problema
 Muitas pessoas apresentam dificuldades para organizar suas finanças pessoais, controlar receitas e despesas e acompanhar o saldo disponível. O Meu Bolso propõe uma aplicação web para facilitar esse controle.
 
+- [Documentação do banco de dados](database/documentacao-banco-de-dados.md)
+- 
 ## 2. Objetivo geral
 Desenvolver um sistema web de controle financeiro pessoal utilizando PHP e MySQL, permitindo registrar movimentações, consultar o saldo e acompanhar os gastos.
 
