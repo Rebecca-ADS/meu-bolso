@@ -178,6 +178,9 @@ function linkPagina(int $pagina, string $mes): string
         <h1>Meu Bolso</h1>
         <div>
             <a href="dashboard.php">Dashboard</a> |
+            <a href="graficos.php">Gráficos</a> |
+            <a href="perfil.php">Perfil</a> |
+            <a href="configuracoes.php">Configurações</a> |
             <a href="logout.php">Sair</a>
         </div>
     </header>

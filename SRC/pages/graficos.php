@@ -93,6 +93,7 @@ function moeda(float $valor): string
         .negativo { color: #b42318; }
 
         .painel { padding: 20px; background: #fff; border-radius: 14px; box-shadow: 0 4px 18px #00000010; }
+        .painel h2 { margin-top: 0; }
 
         .filtro { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 12px; margin-bottom: 20px; }
         .filtro label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 14px; }
@@ -119,6 +120,8 @@ function moeda(float $valor): string
         <div>
             <a href="dashboard.php">Dashboard</a> |
             <a href="historico.php">Histórico</a> |
+            <a href="perfil.php">Perfil</a> |
+            <a href="configuracoes.php">Configurações</a> |
             <a href="logout.php">Sair</a>
         </div>
     </header>
@@ -144,7 +147,7 @@ function moeda(float $valor): string
         </section>
 
         <section class="painel">
-            <h2 style="margin-top:0">Gastos por categoria</h2>
+            <h2>Gastos por categoria</h2>
 
             <form class="filtro" method="GET" action="graficos.php">
                 <div>
