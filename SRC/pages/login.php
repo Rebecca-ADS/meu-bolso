@@ -20,7 +20,7 @@ if (empty($_SESSION['csrf_token'])) {
 $mensagem = '';
 $email = '';
 
-// Aviso vindo do cadastro (aparece uma única vez).
+// Aviso vindo do cadastro ou da redefinição de senha (aparece uma única vez).
 $aviso = $_SESSION['flash_login'] ?? '';
 unset($_SESSION['flash_login']);
 
@@ -247,6 +247,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </form>
 
         <div class="links">
+            <a href="esqueci_senha.php">Esqueceu a senha?</a><br>
             <a href="cadastro.php">Criar uma conta</a><br>
             <a href="../index.php">Voltar para a página inicial</a>
         </div>
