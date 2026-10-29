@@ -36,3 +36,18 @@ As relações foram definidas por meio de chaves estrangeiras.
 4. Testar as operações de cadastro, consulta, atualização e exclusão.
 
 **Observação:** o banco foi criado no ambiente local de desenvolvimento. A documentação e o script SQL devem ser versionados no GitHub para facilitar a manutenção e a reprodução da estrutura.
+
+## Tabela `redefinicoes_senha`
+
+Guarda os pedidos de recuperação de senha (RF13). O token em texto nunca é gravado, só o hash.
+
+| Coluna | Tipo | Nulo | Chave | Descrição |
+|---|---|---|---|---|
+| id_redefinicao | INT AUTO_INCREMENT | Não | PK | Identificador do pedido |
+| id_usuario | INT | Não | FK -> usuarios | Dono do pedido |
+| token_hash | CHAR(64) | Não | UNIQUE | SHA-256 do token enviado ao usuário |
+| expira_em | DATETIME | Não | | Validade (1 hora após o pedido) |
+| usado_em | DATETIME | Sim | | Preenchido quando o link é usado |
+| criado_em | TIMESTAMP | Não | | Data do pedido |
+
+Relacionamento: um usuário pode ter vários pedidos (1:N). Ao excluir o usuário, os pedidos são apagados (`ON DELETE CASCADE`).
