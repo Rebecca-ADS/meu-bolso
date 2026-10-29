@@ -7,7 +7,7 @@ Contas de teste: `conta.a@teste.com` e `conta.b@teste.com` (fictícias).
 
 | ID | Caso de teste | Resultado esperado | Resultado obtido |
 |---|---|---|---|
-| CT01 | Cadastrar com dados válidos | Redireciona ao login com aviso de sucesso | |
+| CT01 | Cadastrar com dados válidos | Redireciona ao login com aviso de sucesso | Passou |
 | CT02 | Cadastrar com e-mail já existente | "Este e-mail já está cadastrado." | |
 | CT03 | Cadastrar com senha de menos de 8 caracteres | Mensagem de erro | |
 | CT04 | Cadastrar com senhas diferentes | "As senhas não coincidem." | |
