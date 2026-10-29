@@ -22,7 +22,8 @@ Jovens e adultos que desejam organizar suas finanças pessoais por meio de uma i
 - RF10 — Consultar e editar dados básicos do perfil.
 - RF11 — Acessar configurações da conta.
 - RF12 — Organizar movimentações por categoria.
-
+- RF13 — Permitir a recuperação de senha por link temporário.
+- 
 ## 5. Requisitos não funcionais
 - RNF01 — Utilizar PHP e MySQL.
 - RNF02 — Apresentar interface responsiva.
@@ -112,7 +113,8 @@ O sistema Meu Bolso deverá adotar medidas de segurança para proteger os dados 
 - **RN-S02:** toda operação sobre uma transação deverá verificar se ela pertence ao usuário autenticado.
 - **RN-S03:** o sistema não deverá armazenar senhas em texto puro.
 - **RN-S04:** o logout deverá encerrar a sessão autenticada, impedindo o acesso às páginas privadas sem nova autenticação.
-
+- **RN-S05:** o link de redefinição de senha expira em 1 hora e só pode ser usado uma vez.
+- 
 ### Critérios de verificação
 
 A segurança deverá ser verificada por meio de testes de login, logout, acesso não autorizado, isolamento das transações entre usuários, validação de formulários e tratamento seguro dos dados exibidos nas páginas.
