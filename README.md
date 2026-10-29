@@ -71,6 +71,8 @@ protótipo/             telas do Figma
 ## Documentação
 
 - [Levantamento de requisitos](Docs/levantamento-requisitos.md)
+- [Arquitetura](docs/arquitetura.md)
+- [Plano de testes](docs/plano-de-testes.md)
 
 ## Autora
 
