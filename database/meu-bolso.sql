@@ -38,4 +38,15 @@ CREATE TABLE transacoes (
         REFERENCES categorias(id_categoria)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
-
+CREATE TABLE IF NOT EXISTS redefinicoes_senha (
+    id_redefinicao INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    token_hash CHAR(64) NOT NULL,
+    expira_em DATETIME NOT NULL,
+    usado_em DATETIME NULL,
+    criado_em TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    UNIQUE KEY uq_redef_token (token_hash),
+    CONSTRAINT fk_redef_usuario
+        FOREIGN KEY (id_usuario) REFERENCES usuarios(id_usuario)
+        ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
