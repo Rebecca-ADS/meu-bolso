@@ -21,56 +21,56 @@ Contas de teste: `conta.a@teste.com` e `conta.b@teste.com` (fictícias).
 
 | ID | Caso de teste | Resultado esperado | Resultado obtido |
 |---|---|---|---|
-| CT10 | Cadastrar receita válida | Aparece no dashboard; saldo aumenta | |
-| CT11 | Cadastrar despesa válida | Aparece no dashboard; saldo diminui | |
-| CT12 | Valor zero | Mensagem de erro | |
-| CT13 | Valor negativo | Mensagem de erro | |
-| CT14 | Descrição vazia | Mensagem de erro | |
-| CT15 | Categoria incompatível com o tipo | Mensagem de erro | |
-| CT16 | Ver detalhes de um lançamento | Mostra descrição, tipo, categoria, data e valor | |
-| CT17 | Excluir com confirmação | Remove o lançamento; saldo e gráfico atualizam | |
-| CT18 | Cancelar a confirmação de exclusão | Nada é excluído | |
-| CT19 | Filtrar histórico por mês | Lista e totais do mês | |
+| CT10 | Cadastrar receita válida | Aparece no dashboard; saldo aumenta | passou|
+| CT11 | Cadastrar despesa válida | Aparece no dashboard; saldo diminui |passou |
+| CT12 | Valor zero | Mensagem de erro |passou |
+| CT13 | Valor negativo | Mensagem de erro |passou |
+| CT14 | Descrição vazia | Mensagem de erro |passou |
+| CT15 | Categoria incompatível com o tipo | Mensagem de erro |passou |
+| CT16 | Ver detalhes de um lançamento | Mostra descrição, tipo, categoria, data e valor |passou |
+| CT17 | Excluir com confirmação | Remove o lançamento; saldo e gráfico atualizam |passou |
+| CT18 | Cancelar a confirmação de exclusão | Nada é excluído |passou |
+| CT19 | Filtrar histórico por mês | Lista e totais do mês | passou|
 
 ## 3. Gráficos (RF09, RN10)
 
 | ID | Caso de teste | Resultado esperado | Resultado obtido |
 |---|---|---|---|
-| CT20 | Mês com despesas | Rosca e tabela com percentuais | |
-| CT21 | Mês sem despesas | "Nenhuma despesa registrada neste mês." | |
-| CT22 | Mês sem receitas | Percentual exibido como "—" (sem divisão por zero) | |
+| CT20 | Mês com despesas | Rosca e tabela com percentuais |passou |
+| CT21 | Mês sem despesas | "Nenhuma despesa registrada neste mês." |passou |
+| CT22 | Mês sem receitas | Percentual exibido como "—" (sem divisão por zero) | passou|
 
 ## 4. Segurança e isolamento (RN-S02, RNF-S04, RNF-S06, RNF-S07)
 
 | ID | Caso de teste | Resultado esperado | Resultado obtido |
 |---|---|---|---|
 | CT23 | Conta B abre `detalhes.php?id=` de um lançamento da conta A | "Lançamento não encontrado" | **Passou** |
-| CT24 | Dashboard da conta B | Sem dados da conta A | |
-| CT25 | Histórico e gráfico da conta B | Sem dados da conta A | |
-| CT26 | Enviar formulário com token CSRF inválido | "Formulário inválido." | |
-| CT27 | Descrição com `<script>alert(1)</script>` | Texto exibido sem executar | |
-| CT28 | Senha no banco | Hash começando com `$2y$` | |
+| CT24 | Dashboard da conta B | Sem dados da conta A | passou|
+| CT25 | Histórico e gráfico da conta B | Sem dados da conta A |passou|
+| CT26 | Enviar formulário com token CSRF inválido | "Formulário inválido." | passou|
+| CT27 | Descrição com `<script>alert(1)</script>` | Texto exibido sem executar | passou|
+| CT28 | Senha no banco | Hash começando com `$2y$` |passou |
 
 ## 5. Perfil e configurações (RF10, RF11)
 
 | ID | Caso de teste | Resultado esperado | Resultado obtido |
 |---|---|---|---|
-| CT29 | Alterar o nome | "Olá, ..." do menu muda | |
-| CT30 | Usar e-mail de outra conta | "Este e-mail já está em uso" | |
-| CT31 | Alterar senha com a atual errada | "A senha atual está incorreta." | |
-| CT32 | Alterar senha corretamente | Login funciona com a nova senha | |
-| CT33 | Excluir conta com senha errada | Conta não é excluída | |
-| CT34 | Excluir conta com senha correta | Conta e lançamentos removidos | |
+| CT29 | Alterar o nome | "Olá, ..." do menu muda | passou|
+| CT30 | Usar e-mail de outra conta | "Este e-mail já está em uso" | passou|
+| CT31 | Alterar senha com a atual errada | "A senha atual está incorreta." | passou|
+| CT32 | Alterar senha corretamente | Login funciona com a nova senha |passou |
+| CT33 | Excluir conta com senha errada | Conta não é excluída | passou|
+| CT34 | Excluir conta com senha correta | Conta e lançamentos removidos | passou|
 
 ## 6. Recuperação de senha (RF13)
 
 | ID | Caso de teste | Resultado esperado | Resultado obtido |
 |---|---|---|---|
-| CT35 | Pedir link com e-mail cadastrado | Mensagem genérica e link (modo dev) | |
-| CT36 | Pedir link com e-mail inexistente | Mesma mensagem, sem link | |
-| CT37 | Usar o link e definir nova senha | Volta ao login com aviso verde | |
-| CT38 | Reutilizar o mesmo link | "Link inválido" | |
-| CT39 | Alterar caracteres do token na URL | "Link inválido" | |
+| CT35 | Pedir link com e-mail cadastrado | Mensagem genérica e link (modo dev) | passou|
+| CT36 | Pedir link com e-mail inexistente | Mesma mensagem, sem link | passou|
+| CT37 | Usar o link e definir nova senha | Volta ao login com aviso verde |passou |
+| CT38 | Reutilizar o mesmo link | "Link inválido" |passou |
+| CT39 | Alterar caracteres do token na URL | "Link inválido" |passou |
 
 ## 7. Registro de bugs
 
