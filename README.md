@@ -4,9 +4,9 @@ Aplicação web de controle financeiro pessoal, desenvolvida em PHP e MySQL. Per
 
 
 ## Documentação
-
 - [Levantamento de requisitos](docs/levantamento-requisitos.md)
 - [Documentação do banco de dados](database/documentacao-banco-de-dados.md)
+
 
 ## Funcionalidades
 
@@ -70,10 +70,13 @@ protótipo/             telas do Figma
 
 ## Documentação
 
-- [Levantamento de requisitos](Docs/levantamento-requisitos.md)
+## Documentação
+
+- [Levantamento de requisitos](docs/levantamento-requisitos.md)
 - [Arquitetura](docs/arquitetura.md)
 - [Plano de testes](docs/plano-de-testes.md)
-
+- [Documentação do banco de dados](database/documentacao-banco-de-dados.md)
+  
 ## Autora
 
 Rebecca Corrêa
