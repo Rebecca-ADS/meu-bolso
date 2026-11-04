@@ -32,13 +32,16 @@ Contas de teste: `conta.a@teste.com` e `conta.b@teste.com` (fictícias).
 | CT18 | Cancelar a confirmação de exclusão | Nada é excluído |passou |
 | CT19 | Filtrar histórico por mês | Lista e totais do mês | passou|
 
-## 3. Gráficos (RF09, RN10)
+## Gráficos (RF09, RN10)
 
 | ID | Caso de teste | Resultado esperado | Resultado obtido |
 |---|---|---|---|
-| CT20 | Mês com despesas | Rosca e tabela com percentuais |passou |
-| CT21 | Mês sem despesas | "Nenhuma despesa registrada neste mês." |passou |
-| CT22 | Mês sem receitas | Percentual exibido como "—" (sem divisão por zero) | passou|
+| CT20 | Mês com despesas | Rosca com "Total gasto" no centro e lista com cor, categoria, percentual e valor | |
+| CT21 | Mês sem despesas | "Nenhuma despesa registrada neste mês." | |
+| CT22 | Mês sem receitas | Percentual exibido como "—" (sem divisão por zero) | |
+| CT40 | Passar o mouse numa fatia | Balão com categoria, valor e percentual | |
+| CT41 | Soma dos percentuais da lista | Aproximadamente 100% | |
+
 
 ## 4. Segurança e isolamento (RN-S02, RNF-S04, RNF-S06, RNF-S07)
 
