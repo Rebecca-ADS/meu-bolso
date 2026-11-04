@@ -18,7 +18,7 @@ Jovens e adultos que desejam organizar suas finanças pessoais por meio de uma i
 - RF06 — Consultar detalhes de uma transação.
 - RF07 — Excluir transações mediante confirmação.
 - RF08 — Calcular o saldo automaticamente.
-- RF09 — Exibir gráficos de gastos.
+- RF09 — Exibir gráfico de distribuição das despesas por categoria, com total, valor e percentual de cada categoria, filtrável por mês.
 - RF10 — Consultar e editar dados básicos do perfil.
 - RF11 — Acessar configurações da conta.
 - RF12 — Organizar movimentações por categoria.
