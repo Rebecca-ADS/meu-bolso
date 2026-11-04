@@ -20,7 +20,7 @@ Navegador -> pages/*.php -> classes/*.php -> PDO -> MySQL
 | MySQL/MariaDB | Armazenamento dos dados |
 | HTML e CSS | Interface responsiva |
 | JavaScript | Filtro de categorias no formulário e gráfico |
-| Chart.js (CDN) | Gráfico de gastos por categoria |
+| Chart.js (CDN) | Gráfico de rosca (doughnut) da distribuição de despesas, com total central e tooltip em percentual |
 | Git e GitHub | Versionamento (branches `main`, `develop` e `feature/...`) |
 | Figma | Protótipo das telas |
 | XAMPP | Ambiente de desenvolvimento |
