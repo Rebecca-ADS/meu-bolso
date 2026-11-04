@@ -104,12 +104,33 @@ function moeda(float $valor): string
         }
         .filtro button:hover { background: #104d80; }
 
-        .grafico { max-width: 380px; margin: 0 auto 24px; }
+        .grafico { position: relative; max-width: 320px; margin: 0 auto 24px; }
 
-        .tabela { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px 8px; text-align: left; border-bottom: 1px solid #e5eaf2; }
-        th { font-size: 13px; color: #65738a; }
+        .centro {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            pointer-events: none;
+            text-align: center;
+        }
+        .centro small { font-size: 13px; color: #65738a; }
+        .centro strong { font-size: 20px; }
+
+        .legenda { list-style: none; margin: 0; padding: 0; }
+        .legenda li {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 4px;
+            border-bottom: 1px solid #e5eaf2;
+        }
+        .legenda .bolinha { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+        .legenda .nome { flex: 1; }
+        .legenda .pct { color: #65738a; font-size: 14px; min-width: 56px; text-align: right; }
+        .legenda .valor { font-weight: bold; min-width: 100px; text-align: right; }
 
         .vazio { padding: 24px 0; text-align: center; color: #65738a; }
     </style>
@@ -147,7 +168,7 @@ function moeda(float $valor): string
         </section>
 
         <section class="painel">
-            <h2>Gastos por categoria</h2>
+            <h2>Distribuição das despesas</h2>
 
             <form class="filtro" method="GET" action="graficos.php">
                 <div>
@@ -162,33 +183,27 @@ function moeda(float $valor): string
             <?php else: ?>
                 <div class="grafico">
                     <canvas id="grafico" aria-label="Gráfico de gastos por categoria" role="img"></canvas>
+                    <div class="centro">
+                        <small>Total gasto</small>
+                        <strong><?= e(moeda($totalDespesas)) ?></strong>
+                    </div>
                 </div>
 
-                <div class="tabela">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Categoria</th>
-                                <th>Total</th>
-                                <th>% das despesas</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        <?php foreach ($dados as $linha): ?>
-                            <?php $valor = (float) $linha['total']; ?>
-                            <tr>
-                                <td><?= e($linha['categoria']) ?></td>
-                                <td><?= e(moeda($valor)) ?></td>
-                                <td>
-                                    <?= $totalDespesas > 0
-                                        ? e(number_format(($valor / $totalDespesas) * 100, 1, ',', '.') . '%')
-                                        : '—' ?>
-                                </td>
-                            </tr>
-                        <?php endforeach; ?>
-                        </tbody>
-                    </table>
-                </div>
+                <ul class="legenda">
+                    <?php foreach ($dados as $i => $linha): ?>
+                        <?php $valor = (float) $linha['total']; ?>
+                        <li>
+                            <span class="bolinha" data-i="<?= (int) $i ?>"></span>
+                            <span class="nome"><?= e($linha['categoria']) ?></span>
+                            <span class="pct">
+                                <?= $totalDespesas > 0
+                                    ? e(number_format(($valor / $totalDespesas) * 100, 1, ',', '.') . '%')
+                                    : '—' ?>
+                            </span>
+                            <span class="valor"><?= e(moeda($valor)) ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ul>
             <?php endif; ?>
         </section>
     </main>
@@ -199,25 +214,34 @@ function moeda(float $valor): string
             const labels = <?= json_encode($labels, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
             const valores = <?= json_encode($valores, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT) ?>;
 
+            const cores = ['#3b82f6', '#f59e0b', '#10b981', '#a855f7', '#ef4444',
+                           '#14b8a6', '#f97316', '#6366f1', '#84cc16', '#ec4899', '#64748b'];
+
+            document.querySelectorAll('.bolinha').forEach((el) => {
+                el.style.background = cores[Number(el.dataset.i) % cores.length];
+            });
+
             new Chart(document.getElementById('grafico'), {
                 type: 'doughnut',
                 data: {
                     labels: labels,
-                    datasets: [{
-                        data: valores,
-                        backgroundColor: [
-                            '#1769aa', '#e4572e', '#17bebb', '#ffc914', '#76b041',
-                            '#8e5572', '#f28f3b', '#5c6bc0', '#26a69a', '#ef5350', '#78909c'
-                        ]
-                    }]
+                    datasets: [{ data: valores, backgroundColor: cores, borderWidth: 2 }]
                 },
                 options: {
+                    cutout: '65%',
                     plugins: {
-                        legend: { position: 'bottom' },
+                        legend: { display: false },
                         tooltip: {
                             callbacks: {
-                                label: (ctx) => ' ' + ctx.label + ': R$ ' +
-                                    ctx.parsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 })
+                                label: (ctx) => {
+                                    const total = ctx.dataset.data.reduce((a, b) => a + b, 0);
+                                    const pct = total > 0
+                                        ? (ctx.parsed / total * 100).toFixed(1).replace('.', ',')
+                                        : '0';
+                                    return ' ' + ctx.label + ': R$ ' +
+                                        ctx.parsed.toLocaleString('pt-BR', { minimumFractionDigits: 2 }) +
+                                        ' (' + pct + '%)';
+                                }
                             }
                         }
                     }
