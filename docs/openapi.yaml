@@ -1,25 +1,437 @@
 openapi: 3.0.3
 info:
-  title: API Meu Bolso
-  description: Documentação das APIs do projeto Meu Bolso.
+  title: Meu Bolso - Rotas do sistema
+  description: |
+    Documentação das rotas do Meu Bolso, uma aplicação PHP de controle financeiro.
+    O sistema é feito de páginas: as telas respondem em HTML e os formulários
+    enviam dados por `application/x-www-form-urlencoded`.
+
+    Todas as telas com formulário exigem o campo `csrf_token`, gerado na própria
+    página. As telas internas exigem usuário logado (sessão PHP, cookie `PHPSESSID`).
   version: 0.1.0
 
 servers:
   - url: http://localhost:8080
     description: Ambiente local (Docker)
 
+tags:
+  - name: Autenticação
+  - name: Lançamentos
+  - name: Relatórios
+  - name: Conta
+
+components:
+  securitySchemes:
+    sessaoPHP:
+      type: apiKey
+      in: cookie
+      name: PHPSESSID
+      description: Sessão criada após o login.
+
+  parameters:
+    mes:
+      name: mes
+      in: query
+      required: false
+      description: Mês de referência do filtro.
+      schema:
+        type: string
+        example: "2026-11"
+
+  responses:
+    Pagina:
+      description: Página HTML (também é devolvida com mensagem de erro quando a validação falha).
+      content:
+        text/html:
+          schema:
+            type: string
+    Redireciona:
+      description: Redirecionamento para a próxima tela após o sucesso.
+
 paths:
-  /exemplo.php:
+  /index.php:
     get:
-      summary: Endpoint de exemplo (substituir pelos endpoints reais)
+      tags: [Autenticação]
+      summary: Página inicial
+      description: Tela de boas-vindas com os botões Entrar e Criar minha conta.
       responses:
         "200":
-          description: Sucesso
-          content:
-            application/json:
-              schema:
-                type: object
-                properties:
-                  mensagem:
-                    type: string
-                    example: ok
+          $ref: "#/components/responses/Pagina"
+
+  /pages/cadastro.php:
+    get:
+      tags: [Autenticação]
+      summary: Exibe o formulário de cadastro
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+    post:
+      tags: [Autenticação]
+      summary: Cria uma conta
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [nome, email, senha, confirmar_senha, csrf_token]
+              properties:
+                nome:
+                  type: string
+                  example: Ane Ribeiro
+                email:
+                  type: string
+                  format: email
+                  example: ane@exemplo.com
+                senha:
+                  type: string
+                  format: password
+                  minLength: 8
+                confirmar_senha:
+                  type: string
+                  format: password
+                csrf_token:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+        "302":
+          $ref: "#/components/responses/Redireciona"
+
+  /pages/login.php:
+    get:
+      tags: [Autenticação]
+      summary: Exibe o formulário de login
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+    post:
+      tags: [Autenticação]
+      summary: Autentica o usuário
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [email, senha, csrf_token]
+              properties:
+                email:
+                  type: string
+                  format: email
+                senha:
+                  type: string
+                  format: password
+                csrf_token:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+        "302":
+          $ref: "#/components/responses/Redireciona"
+
+  /pages/logout.php:
+    get:
+      tags: [Autenticação]
+      summary: Encerra a sessão
+      security:
+        - sessaoPHP: []
+      responses:
+        "302":
+          $ref: "#/components/responses/Redireciona"
+
+  /pages/esqueci_senha.php:
+    get:
+      tags: [Autenticação]
+      summary: Exibe o formulário de recuperação de senha
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+    post:
+      tags: [Autenticação]
+      summary: Solicita a redefinição de senha
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [email, csrf_token]
+              properties:
+                email:
+                  type: string
+                  format: email
+                csrf_token:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+
+  /pages/redefinir_senha.php:
+    get:
+      tags: [Autenticação]
+      summary: Exibe o formulário de nova senha
+      parameters:
+        - name: token
+          in: query
+          required: true
+          description: Token de redefinição enviado ao usuário.
+          schema:
+            type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+    post:
+      tags: [Autenticação]
+      summary: Define a nova senha
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [token, senha, confirmar_senha, csrf_token]
+              properties:
+                token:
+                  type: string
+                senha:
+                  type: string
+                  format: password
+                  minLength: 8
+                confirmar_senha:
+                  type: string
+                  format: password
+                csrf_token:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+        "302":
+          $ref: "#/components/responses/Redireciona"
+
+  /pages/dashboard.php:
+    get:
+      tags: [Lançamentos]
+      summary: Painel com o resumo financeiro
+      security:
+        - sessaoPHP: []
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+    post:
+      tags: [Lançamentos]
+      summary: Exclui um lançamento a partir do painel
+      security:
+        - sessaoPHP: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id_transacao, csrf_token]
+              properties:
+                excluir:
+                  type: string
+                  description: Indica a ação de exclusão.
+                id_transacao:
+                  type: integer
+                csrf_token:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+        "302":
+          $ref: "#/components/responses/Redireciona"
+
+  /pages/nova_transacao.php:
+    get:
+      tags: [Lançamentos]
+      summary: Exibe o formulário de novo lançamento
+      security:
+        - sessaoPHP: []
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+    post:
+      tags: [Lançamentos]
+      summary: Registra uma receita ou despesa
+      security:
+        - sessaoPHP: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [tipo, id_categoria, valor, data, csrf_token]
+              properties:
+                tipo:
+                  type: string
+                  description: Tipo do lançamento (receita ou despesa).
+                  example: despesa
+                id_categoria:
+                  type: integer
+                  description: Código da categoria.
+                valor:
+                  type: number
+                  example: 49.9
+                data:
+                  type: string
+                  format: date
+                  example: "2026-11-15"
+                descricao:
+                  type: string
+                  example: Almoço
+                csrf_token:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+        "302":
+          $ref: "#/components/responses/Redireciona"
+
+  /pages/detalhes.php:
+    get:
+      tags: [Lançamentos]
+      summary: Detalhes de um lançamento
+      security:
+        - sessaoPHP: []
+      parameters:
+        - name: id
+          in: query
+          required: true
+          description: Código do lançamento.
+          schema:
+            type: integer
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+    post:
+      tags: [Lançamentos]
+      summary: Exclui o lançamento exibido
+      security:
+        - sessaoPHP: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [id_transacao, csrf_token]
+              properties:
+                excluir:
+                  type: string
+                id_transacao:
+                  type: integer
+                csrf_token:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+        "302":
+          $ref: "#/components/responses/Redireciona"
+
+  /pages/historico.php:
+    get:
+      tags: [Relatórios]
+      summary: Histórico de lançamentos
+      security:
+        - sessaoPHP: []
+      parameters:
+        - $ref: "#/components/parameters/mes"
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+
+  /pages/graficos.php:
+    get:
+      tags: [Relatórios]
+      summary: Gráficos de receitas e despesas
+      security:
+        - sessaoPHP: []
+      parameters:
+        - $ref: "#/components/parameters/mes"
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+
+  /pages/perfil.php:
+    get:
+      tags: [Conta]
+      summary: Exibe os dados do perfil
+      security:
+        - sessaoPHP: []
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+    post:
+      tags: [Conta]
+      summary: Atualiza nome e e-mail
+      security:
+        - sessaoPHP: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [nome, email, csrf_token]
+              properties:
+                nome:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                csrf_token:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+
+  /pages/configuracoes.php:
+    get:
+      tags: [Conta]
+      summary: Exibe as configurações da conta
+      security:
+        - sessaoPHP: []
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+    post:
+      tags: [Conta]
+      summary: Altera a senha ou exclui a conta
+      description: O campo `acao` indica qual operação o formulário executa.
+      security:
+        - sessaoPHP: []
+      requestBody:
+        required: true
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              type: object
+              required: [acao, csrf_token]
+              properties:
+                acao:
+                  type: string
+                  description: Operação solicitada (alterar senha ou excluir conta).
+                senha_atual:
+                  type: string
+                  format: password
+                nova_senha:
+                  type: string
+                  format: password
+                confirmar_senha:
+                  type: string
+                  format: password
+                senha_excluir:
+                  type: string
+                  format: password
+                  description: Senha para confirmar a exclusão da conta.
+                csrf_token:
+                  type: string
+      responses:
+        "200":
+          $ref: "#/components/responses/Pagina"
+        "302":
+          $ref: "#/components/responses/Redireciona"
