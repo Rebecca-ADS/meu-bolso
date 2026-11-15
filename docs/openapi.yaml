@@ -1,0 +1,25 @@
+openapi: 3.0.3
+info:
+  title: API Meu Bolso
+  description: Documentação das APIs do projeto Meu Bolso.
+  version: 0.1.0
+
+servers:
+  - url: http://localhost:8080
+    description: Ambiente local (Docker)
+
+paths:
+  /exemplo.php:
+    get:
+      summary: Endpoint de exemplo (substituir pelos endpoints reais)
+      responses:
+        "200":
+          description: Sucesso
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  mensagem:
+                    type: string
+                    example: ok
