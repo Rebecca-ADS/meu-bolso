@@ -91,3 +91,5 @@ qualquer página privada -> logout -> index
 - **Recuperação de senha em modo desenvolvimento:** o link aparece na tela porque o XAMPP não envia e-mail. Em produção, desligar `$modoDev` e enviar por e-mail.
 - **Cookies de sessão:** os atributos `HttpOnly` e `SameSite` ainda podem ser configurados (melhoria futura, RNF-S09).
 - **HTTPS:** necessário em produção (RNF-S11).
+
+Para a arquitetura do ambiente Docker e a documentação das rotas (Swagger), veja [arquitetura-docker.md](arquitetura-docker.md).
