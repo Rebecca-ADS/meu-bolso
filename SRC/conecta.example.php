@@ -8,7 +8,7 @@ $dbNome = 'meu_bolso';
 $dbUsuario = 'seu_usuario';
 $dbSenha = '';
 
-$dsn = "mysql:host=$dbHost;port=$dbPorta;dbname=$dbNome;charset=utf8mb4";
+$dsn = "mysql:host=$host;port=$porta;dbname=$banco;charset=utf8mb4";
 
 try {
     $pdo = new PDO($dsn, $dbUsuario, $dbSenha, [
