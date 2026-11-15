@@ -80,3 +80,50 @@ protótipo/             telas do Figma
 ## Autora
 
 Rebecca Corrêa
+
+## Como rodar com Docker
+
+### Pré-requisitos
+- Docker Desktop instalado e aberto (aguarde o "Engine running")
+- Git
+
+### Passo a passo
+
+1. Clone o repositório (de preferência fora do OneDrive):
+
+       git clone https://github.com/Rebecca-ADS/meu-bolso.git
+       cd meu-bolso
+
+2. Crie o arquivo de conexão a partir do exemplo:
+
+       Copy-Item SRC\conecta.example.php SRC\conecta.php
+
+   Abra `SRC/conecta.php` e use: host `db`, porta `3306`, banco `meu_bolso`, usuário `root`, senha `meu_bolso_dev`.
+   O `conecta.php` não vai para o GitHub (está no `.gitignore`).
+
+3. Suba os containers:
+
+       cd prototipo
+       docker compose up -d --build
+
+4. Acesse http://localhost:8080
+
+Na primeira execução, o banco importa automaticamente o arquivo `database/meu-bolso.sql`. Aguarde cerca de 1 minuto.
+
+### Comandos úteis
+
+| Ação | Comando |
+|------|---------|
+| Subir o projeto | `docker compose up -d` |
+| Parar o projeto | `docker compose down` |
+| Ver logs | `docker compose logs app` / `docker compose logs db` |
+| Recriar o banco do zero (apaga os dados) | `docker compose down -v` e depois `docker compose up -d` |
+
+### Acesso externo ao banco
+No MySQL Workbench: host `127.0.0.1`, porta `3307`, usuário `root`, senha `meu_bolso_dev`.
+
+### Problemas comuns
+- **"Forbidden":** confira se o `compose.yaml` usa `../SRC:/var/www/html`.
+- **Erro ao conectar na API do Docker:** o Docker Desktop não está aberto.
+- **Cadastro falha:** o banco está sem tabelas. Rode `docker compose down -v` e `docker compose up -d`.
+- **Acentos quebrados:** recrie o banco com `down -v`; o compose já força UTF-8.
