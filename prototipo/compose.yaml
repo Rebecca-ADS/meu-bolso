@@ -22,5 +22,15 @@ services:
       - mysql_data:/var/lib/mysql
       - ../database/meu-bolso.sql:/docker-entrypoint-initdb.d/meu-bolso.sql
 
+  swagger:
+    image: swaggerapi/swagger-ui
+    container_name: meu-bolso-swagger
+    ports:
+      - "8081:8080"
+    environment:
+      SWAGGER_JSON: /docs/openapi.yaml
+    volumes:
+      - ../docs/openapi.yaml:/docs/openapi.yaml
+
 volumes:
   mysql_data:
