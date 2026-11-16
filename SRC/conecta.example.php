@@ -1,20 +1,18 @@
 <?php
 
-declare(strict_types=1);
+$dbHost    = 'db';
+$dbPorta   = '3306';
+$dbNome    = 'meu_bolso';
+$dbUsuario = 'root';
+$dbSenha   = 'meu_bolso_dev';
 
-$dbHost = 'localhost';
-$dbPorta = '3306';
-$dbNome = 'meu_bolso';
-$dbUsuario = 'seu_usuario';
-$dbSenha = '';
-
-$dsn = "mysql:host=$host;port=$porta;dbname=$banco;charset=utf8mb4";
+$dsn = "mysql:host=$dbHost;port=$dbPorta;dbname=$dbNome;charset=utf8mb4";
 
 try {
     $pdo = new PDO($dsn, $dbUsuario, $dbSenha, [
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
         PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-        PDO::ATTR_EMULATE_PREPARES => false,
+        PDO::ATTR_EMULATE_PREPARES   => false,
     ]);
 } catch (PDOException $e) {
     error_log('Erro na conexão com o banco: ' . $e->getMessage());
