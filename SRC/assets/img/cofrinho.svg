@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 190" role="img" aria-label="Cofrinho em formato de porquinho">
+  <!-- moeda caindo na fenda -->
+  <circle cx="120" cy="22" r="16" fill="#f4b400" stroke="#c98f00" stroke-width="3"/>
+  <text x="120" y="29" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#8a6200">$</text>
+
+  <!-- rabinho -->
+  <path d="M38 98 C20 90 18 72 32 70 C44 68 42 82 30 80" fill="none" stroke="#e58aa8" stroke-width="5" stroke-linecap="round"/>
+
+  <!-- pernas -->
+  <rect x="62" y="140" width="26" height="32" rx="10" fill="#e9799e"/>
+  <rect x="146" y="140" width="26" height="32" rx="10" fill="#e9799e"/>
+
+  <!-- corpo -->
+  <ellipse cx="116" cy="104" rx="82" ry="58" fill="#f6a1bd"/>
+
+  <!-- orelha -->
+  <path d="M138 56 L152 28 L172 60 Z" fill="#e9799e"/>
+
+  <!-- fenda do cofrinho -->
+  <rect x="96" y="52" width="46" height="9" rx="4.5" fill="#a63d63"/>
+
+  <!-- focinho -->
+  <ellipse cx="190" cy="108" rx="24" ry="20" fill="#e9799e"/>
+  <ellipse cx="183" cy="108" rx="4" ry="6" fill="#a63d63"/>
+  <ellipse cx="197" cy="108" rx="4" ry="6" fill="#a63d63"/>
+
+  <!-- olho e bochecha -->
+  <circle cx="160" cy="88" r="6" fill="#3b1b2a"/>
+  <circle cx="162" cy="86" r="2" fill="#ffffff"/>
+  <circle cx="150" cy="112" r="9" fill="#f08cae" opacity=".7"/>
+</svg>

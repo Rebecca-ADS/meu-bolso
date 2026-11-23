@@ -1,0 +1,101 @@
+* { box-sizing: border-box; }
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f3f5f9;
+    color: #222;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ---------- Cabeçalho e rodapé ---------- */
+.topo {
+    background: #1f3a5f;
+    color: #fff;
+    padding: 12px 24px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.topo a { color: #fff; text-decoration: none; }
+.topo .marca { font-size: 1.3rem; font-weight: bold; }
+
+.topo nav { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.topo nav a {
+    padding: 8px 14px;
+    border-radius: 8px;
+    background: rgba(255, 255, 255, .12);
+    border: 1px solid rgba(255, 255, 255, .25);
+    font-size: .95rem;
+}
+.topo nav a:hover { background: rgba(255, 255, 255, .28); }
+.topo nav a.sair { background: #c62828; border-color: #c62828; }
+.topo nav a.sair:hover { background: #a61f1f; }
+
+.conteudo { flex: 1; width: 100%; max-width: 1000px; margin: 24px auto; padding: 0 16px; }
+
+.rodape { background: #1f3a5f; color: #fff; text-align: center; padding: 14px; font-size: .9rem; }
+.rodape p { margin: 0; }
+
+/* ---------- Cartões, formulários e botões ---------- */
+.cartao { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 20px; }
+.cartao.estreito { max-width: 420px; margin-left: auto; margin-right: auto; }
+
+.campo { margin-bottom: 14px; }
+.campo label { display: block; margin-bottom: 4px; font-weight: bold; }
+.campo input, .campo select, .campo textarea {
+    width: 100%; padding: 10px; border: 1px solid #c5ccd6; border-radius: 6px; font-size: 1rem;
+}
+
+button, .botao {
+    display: inline-block; background: #2e7d32; color: #fff; border: 0; border-radius: 6px;
+    padding: 10px 18px; font-size: 1rem; cursor: pointer; text-decoration: none;
+}
+button:hover, .botao:hover { background: #256528; }
+button.cheio { width: 100%; }
+.botao.perigo, button.perigo { background: #c62828; }
+.botao.neutro { background: #1f3a5f; }
+
+.aviso { padding: 10px 14px; border-radius: 6px; margin-bottom: 14px; }
+.aviso.ok { background: #e3f4e5; color: #1b5e20; }
+.aviso.erro { background: #fdeaea; color: #b71c1c; }
+
+/* ---------- Tabelas ---------- */
+table { width: 100%; border-collapse: collapse; background: #fff; }
+th, td { padding: 10px; border-bottom: 1px solid #e3e7ee; text-align: left; }
+th { background: #eef2f8; }
+th a { color: #1f3a5f; text-decoration: none; }
+th a:hover { text-decoration: underline; }
+.tabela { overflow-x: auto; }
+td.valor { white-space: nowrap; font-weight: bold; }
+td a { color: #0866c6; }
+
+/* ---------- Dashboard ---------- */
+.cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+.card { padding: 20px; background: #fff; border-radius: 14px; box-shadow: 0 4px 18px #00000010; }
+.card span { display: block; font-size: 14px; color: #65738a; }
+.card strong { display: block; margin-top: 8px; font-size: 24px; }
+.positivo { color: #0f7b3f; }
+.negativo { color: #b42318; }
+.topo-painel { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 12px; }
+.topo-painel h2 { margin: 0; font-size: 20px; }
+.excluir { padding: 6px 10px; background: #f8d7da; color: #842029; }
+.excluir:hover { background: #f1c0c5; }
+.vazio { padding: 24px 0; text-align: center; color: #65738a; }
+
+/* ---------- Galeria de imagens ---------- */
+.galeria { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; }
+.imagem-item { margin: 0; background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
+.imagem-item img { width: 100%; height: 160px; object-fit: cover; border-radius: 6px; }
+.imagem-item figcaption { margin: 8px 0; font-size: .9rem; }
+
+/* ---------- Cofrinho da tela de login ---------- */
+.mascote-img { display: block; width: 220px; max-width: 60%; margin: 12px auto 0; }
+
+/* ---------- Filtros do histórico ---------- */
+.filtros { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px; }
+.filtros .campo { margin-bottom: 0; min-width: 180px; }

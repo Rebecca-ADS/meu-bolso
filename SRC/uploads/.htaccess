@@ -1,0 +1,5 @@
+# Nada de PHP rodando dentro da pasta de uploads
+<FilesMatch "\.(php|phtml|phar|php5|php7)$">
+    Require all denied
+</FilesMatch>
+Options -Indexes
