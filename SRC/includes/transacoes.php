@@ -1,77 +1,72 @@
 <?php
 
-// Soma de receitas e despesas do usuário (opcionalmente dentro de um período)
+// Totais de receitas e despesas (todo o período ou entre duas datas)
 function transacao_totais($conexao, int $idUsuario, ?string $inicio = null, ?string $fim = null): array
 {
-    $totais = ['receitas' => 0.0, 'despesas' => 0.0];
+    $sql = "SELECT
+                COALESCE(SUM(CASE WHEN tipo = 'receita' THEN valor END), 0),
+                COALESCE(SUM(CASE WHEN tipo = 'despesa' THEN valor END), 0)
+            FROM transacoes
+            WHERE id_usuario = ?";
+    $porPeriodo = ($inicio !== null && $fim !== null);
+    if ($porPeriodo) {
+        $sql .= ' AND data_transacao BETWEEN ? AND ?';
+    }
 
-    if ($inicio !== null && $fim !== null) {
-        $st = mysqli_prepare(
-            $conexao,
-            'SELECT tipo, SUM(valor) FROM transacoes
-             WHERE id_usuario = ? AND data_transacao BETWEEN ? AND ?
-             GROUP BY tipo'
-        );
-        mysqli_stmt_bind_param($st, 'iss', $idUsuario, $inicio, $fim);
+    $stmt = mysqli_prepare($conexao, $sql);
+    if (!$stmt) {
+        return ['receitas' => 0.0, 'despesas' => 0.0];
+    }
+    if ($porPeriodo) {
+        mysqli_stmt_bind_param($stmt, 'iss', $idUsuario, $inicio, $fim);
     } else {
-        $st = mysqli_prepare(
-            $conexao,
-            'SELECT tipo, SUM(valor) FROM transacoes WHERE id_usuario = ? GROUP BY tipo'
-        );
-        mysqli_stmt_bind_param($st, 'i', $idUsuario);
+        mysqli_stmt_bind_param($stmt, 'i', $idUsuario);
     }
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $receitas, $despesas);
+    mysqli_stmt_fetch($stmt);
+    mysqli_stmt_close($stmt);
 
-    mysqli_stmt_execute($st);
-    mysqli_stmt_bind_result($st, $tipo, $soma);
-
-    while (mysqli_stmt_fetch($st)) {
-        if ($tipo === 'receita') {
-            $totais['receitas'] = (float) $soma;
-        } elseif ($tipo === 'despesa') {
-            $totais['despesas'] = (float) $soma;
-        }
-    }
-    mysqli_stmt_close($st);
-
-    return $totais;
+    return ['receitas' => (float) $receitas, 'despesas' => (float) $despesas];
 }
 
-// Últimos lançamentos do usuário, com o nome da categoria
+// Últimos lançamentos do usuário (com a imagem da categoria, se o admin escolheu uma)
 function transacao_listar($conexao, int $idUsuario, int $limite = 10): array
 {
-    $st = mysqli_prepare(
-        $conexao,
-        'SELECT t.id_transacao, t.tipo, t.descricao, t.valor, t.data_transacao, c.nome
-         FROM transacoes t
-         INNER JOIN categorias c ON c.id_categoria = t.id_categoria
-         WHERE t.id_usuario = ?
-         ORDER BY t.data_transacao DESC, t.id_transacao DESC
-         LIMIT ?'
-    );
-    mysqli_stmt_bind_param($st, 'ii', $idUsuario, $limite);
-    mysqli_stmt_execute($st);
-    mysqli_stmt_bind_result($st, $id, $tipo, $descricao, $valor, $data, $categoria);
+    $sql = 'SELECT t.id_transacao, t.tipo, t.descricao, t.valor, t.data_transacao, c.nome, i.arquivo
+            FROM transacoes t
+            INNER JOIN categorias c ON c.id_categoria = t.id_categoria
+            LEFT JOIN imagens i ON i.id_imagem = c.id_imagem
+            WHERE t.id_usuario = ?
+            ORDER BY t.data_transacao DESC, t.id_transacao DESC
+            LIMIT ?';
+    $stmt = mysqli_prepare($conexao, $sql);
+    if (!$stmt) {
+        return [];
+    }
+    mysqli_stmt_bind_param($stmt, 'ii', $idUsuario, $limite);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $id, $tipo, $descricao, $valor, $data, $categoria, $imagem);
 
     $lista = [];
-    while (mysqli_stmt_fetch($st)) {
+    while (mysqli_stmt_fetch($stmt)) {
         $lista[] = [
             'id_transacao'   => $id,
             'tipo'           => $tipo,
             'descricao'      => $descricao,
-            'valor'          => $valor,
+            'valor'          => (float) $valor,
             'data_transacao' => $data,
             'categoria'      => $categoria,
+            'imagem'         => $imagem,
         ];
     }
-    mysqli_stmt_close($st);
-
+    mysqli_stmt_close($stmt);
     return $lista;
 }
 
-// Histórico completo, com ordenação por coluna e filtro opcional por tipo
+// Histórico completo, ordenável (a coluna vem de uma lista fixa, nunca direto do usuário)
 function transacao_historico($conexao, int $idUsuario, string $ordem = 'data', string $dir = 'desc', string $tipo = ''): array
 {
-    // Lista fixa: só estes nomes podem ir para o ORDER BY (evita SQL Injection)
     $colunas = [
         'data'      => 't.data_transacao',
         'descricao' => 't.descricao',
@@ -79,144 +74,250 @@ function transacao_historico($conexao, int $idUsuario, string $ordem = 'data', s
         'tipo'      => 't.tipo',
         'valor'     => 't.valor',
     ];
-    $campo = $colunas[$ordem] ?? $colunas['data'];
-    $sentido = ($dir === 'asc') ? 'ASC' : 'DESC';
+    $colunaSql = $colunas[$ordem] ?? 't.data_transacao';
+    $direcaoSql = ($dir === 'asc') ? 'ASC' : 'DESC';
 
-    $sql = 'SELECT t.id_transacao, t.tipo, t.descricao, t.valor, t.data_transacao, c.nome
+    $sql = 'SELECT t.id_transacao, t.tipo, t.descricao, t.valor, t.data_transacao, c.nome, i.arquivo
             FROM transacoes t
             INNER JOIN categorias c ON c.id_categoria = t.id_categoria
+            LEFT JOIN imagens i ON i.id_imagem = c.id_imagem
             WHERE t.id_usuario = ?';
-
-    $filtraTipo = ($tipo === 'receita' || $tipo === 'despesa');
-    if ($filtraTipo) {
+    $filtrar = in_array($tipo, ['receita', 'despesa'], true);
+    if ($filtrar) {
         $sql .= ' AND t.tipo = ?';
     }
-    $sql .= ' ORDER BY ' . $campo . ' ' . $sentido . ', t.id_transacao DESC';
+    $sql .= " ORDER BY $colunaSql $direcaoSql, t.id_transacao DESC";
 
-    $st = mysqli_prepare($conexao, $sql);
-    if ($filtraTipo) {
-        mysqli_stmt_bind_param($st, 'is', $idUsuario, $tipo);
-    } else {
-        mysqli_stmt_bind_param($st, 'i', $idUsuario);
+    $stmt = mysqli_prepare($conexao, $sql);
+    if (!$stmt) {
+        return [];
     }
-    mysqli_stmt_execute($st);
-    mysqli_stmt_bind_result($st, $id, $tipoLinha, $descricao, $valor, $data, $categoria);
+    if ($filtrar) {
+        mysqli_stmt_bind_param($stmt, 'is', $idUsuario, $tipo);
+    } else {
+        mysqli_stmt_bind_param($stmt, 'i', $idUsuario);
+    }
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $id, $tipoLinha, $descricao, $valor, $data, $categoria, $imagem);
 
     $lista = [];
-    while (mysqli_stmt_fetch($st)) {
+    while (mysqli_stmt_fetch($stmt)) {
         $lista[] = [
             'id_transacao'   => $id,
             'tipo'           => $tipoLinha,
             'descricao'      => $descricao,
-            'valor'          => $valor,
+            'valor'          => (float) $valor,
             'data_transacao' => $data,
             'categoria'      => $categoria,
+            'imagem'         => $imagem,
         ];
     }
-    mysqli_stmt_close($st);
-
+    mysqli_stmt_close($stmt);
     return $lista;
 }
 
-// Despesas agrupadas por categoria dentro de um período (para o gráfico de rosca)
+// Despesas agrupadas por categoria em um período (gráfico de pizza)
 function transacao_despesas_por_categoria($conexao, int $idUsuario, string $inicio, string $fim): array
 {
-    $st = mysqli_prepare(
-        $conexao,
-        "SELECT c.nome, SUM(t.valor) AS total
-         FROM transacoes t
-         INNER JOIN categorias c ON c.id_categoria = t.id_categoria
-         WHERE t.id_usuario = ? AND t.tipo = 'despesa' AND t.data_transacao BETWEEN ? AND ?
-         GROUP BY c.id_categoria, c.nome
-         ORDER BY total DESC"
-    );
-    mysqli_stmt_bind_param($st, 'iss', $idUsuario, $inicio, $fim);
-    mysqli_stmt_execute($st);
-    mysqli_stmt_bind_result($st, $categoria, $total);
+    $sql = "SELECT c.nome, SUM(t.valor) AS total
+            FROM transacoes t
+            INNER JOIN categorias c ON c.id_categoria = t.id_categoria
+            WHERE t.id_usuario = ? AND t.tipo = 'despesa' AND t.data_transacao BETWEEN ? AND ?
+            GROUP BY c.id_categoria, c.nome
+            ORDER BY total DESC";
+    $stmt = mysqli_prepare($conexao, $sql);
+    if (!$stmt) {
+        return [];
+    }
+    mysqli_stmt_bind_param($stmt, 'iss', $idUsuario, $inicio, $fim);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $categoria, $total);
 
     $lista = [];
-    while (mysqli_stmt_fetch($st)) {
+    while (mysqli_stmt_fetch($stmt)) {
         $lista[] = ['categoria' => $categoria, 'total' => (float) $total];
     }
-    mysqli_stmt_close($st);
-
+    mysqli_stmt_close($stmt);
     return $lista;
 }
 
-// Receitas e despesas somadas por mês, a partir de uma data (gráfico de colunas)
+// Total por mês e tipo desde uma data (gráfico de colunas)
 function transacao_resumo_mensal($conexao, int $idUsuario, string $desde): array
 {
-    $st = mysqli_prepare(
-        $conexao,
-        "SELECT DATE_FORMAT(data_transacao, '%Y-%m') AS mes, tipo, SUM(valor) AS total
-         FROM transacoes
-         WHERE id_usuario = ? AND data_transacao >= ?
-         GROUP BY mes, tipo
-         ORDER BY mes"
-    );
-    mysqli_stmt_bind_param($st, 'is', $idUsuario, $desde);
-    mysqli_stmt_execute($st);
-    mysqli_stmt_bind_result($st, $mes, $tipo, $total);
+    $sql = "SELECT DATE_FORMAT(data_transacao, '%Y-%m') AS mes, tipo, SUM(valor) AS total
+            FROM transacoes
+            WHERE id_usuario = ? AND data_transacao >= ?
+            GROUP BY DATE_FORMAT(data_transacao, '%Y-%m'), tipo
+            ORDER BY mes";
+    $stmt = mysqli_prepare($conexao, $sql);
+    if (!$stmt) {
+        return [];
+    }
+    mysqli_stmt_bind_param($stmt, 'is', $idUsuario, $desde);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $mes, $tipo, $total);
 
     $lista = [];
-    while (mysqli_stmt_fetch($st)) {
+    while (mysqli_stmt_fetch($stmt)) {
         $lista[] = ['mes' => $mes, 'tipo' => $tipo, 'total' => (float) $total];
     }
-    mysqli_stmt_close($st);
-
+    mysqli_stmt_close($stmt);
     return $lista;
 }
 
-// Exclui só se o lançamento for do usuário logado
+// Exclui um lançamento (só se for do próprio usuário)
 function transacao_excluir($conexao, int $idTransacao, int $idUsuario): bool
 {
-    $st = mysqli_prepare(
-        $conexao,
-        'DELETE FROM transacoes WHERE id_transacao = ? AND id_usuario = ?'
-    );
-    mysqli_stmt_bind_param($st, 'ii', $idTransacao, $idUsuario);
-    mysqli_stmt_execute($st);
-    $apagou = mysqli_stmt_affected_rows($st) > 0;
-    mysqli_stmt_close($st);
-
+    $stmt = mysqli_prepare($conexao, 'DELETE FROM transacoes WHERE id_transacao = ? AND id_usuario = ?');
+    if (!$stmt) {
+        return false;
+    }
+    mysqli_stmt_bind_param($stmt, 'ii', $idTransacao, $idUsuario);
+    mysqli_stmt_execute($stmt);
+    $apagou = mysqli_stmt_affected_rows($stmt) > 0;
+    mysqli_stmt_close($stmt);
     return $apagou;
 }
 
-// Todas as categorias (receita e despesa)
+// Categorias (para o formulário de novo lançamento)
 function categoria_listar($conexao): array
 {
-    $res = mysqli_query($conexao, 'SELECT id_categoria, nome, tipo FROM categorias ORDER BY tipo, nome');
+    $resultado = mysqli_query($conexao, 'SELECT id_categoria, nome, tipo FROM categorias ORDER BY tipo, nome');
     $lista = [];
-    while ($linha = mysqli_fetch_assoc($res)) {
-        $lista[] = $linha;
+    if ($resultado) {
+        while ($linha = mysqli_fetch_assoc($resultado)) {
+            $lista[] = $linha;
+        }
+        mysqli_free_result($resultado);
     }
     return $lista;
 }
 
-// Tipo (receita/despesa) de uma categoria, ou null se ela não existir
+// Tipo (receita/despesa) de uma categoria, ou null se não existir
 function categoria_tipo($conexao, int $idCategoria): ?string
 {
-    $st = mysqli_prepare($conexao, 'SELECT tipo FROM categorias WHERE id_categoria = ? LIMIT 1');
-    mysqli_stmt_bind_param($st, 'i', $idCategoria);
-    mysqli_stmt_execute($st);
-    mysqli_stmt_bind_result($st, $tipo);
-    $achou = mysqli_stmt_fetch($st);
-    mysqli_stmt_close($st);
-
+    $stmt = mysqli_prepare($conexao, 'SELECT tipo FROM categorias WHERE id_categoria = ?');
+    if (!$stmt) {
+        return null;
+    }
+    mysqli_stmt_bind_param($stmt, 'i', $idCategoria);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $tipo);
+    $achou = mysqli_stmt_fetch($stmt);
+    mysqli_stmt_close($stmt);
     return $achou ? $tipo : null;
 }
 
-// Cria um lançamento para o usuário
+// CRUD - CREATE: cria um lançamento
 function transacao_criar($conexao, int $idUsuario, int $idCategoria, string $tipo, string $descricao, float $valor, string $data): bool
 {
-    $st = mysqli_prepare(
-        $conexao,
-        'INSERT INTO transacoes (id_usuario, id_categoria, tipo, descricao, valor, data_transacao)
-         VALUES (?, ?, ?, ?, ?, ?)'
-    );
-    mysqli_stmt_bind_param($st, 'iissds', $idUsuario, $idCategoria, $tipo, $descricao, $valor, $data);
-    $ok = mysqli_stmt_execute($st);
-    mysqli_stmt_close($st);
-
+    $sql = 'INSERT INTO transacoes (id_usuario, id_categoria, tipo, descricao, valor, data_transacao)
+            VALUES (?, ?, ?, ?, ?, ?)';
+    $stmt = mysqli_prepare($conexao, $sql);
+    if (!$stmt) {
+        return false;
+    }
+    mysqli_stmt_bind_param($stmt, 'iissds', $idUsuario, $idCategoria, $tipo, $descricao, $valor, $data);
+    $ok = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
     return $ok;
 }
+
+// Busca UM lançamento do usuário (null se não existir ou for de outro usuário)
+function transacao_buscar($conexao, int $idTransacao, int $idUsuario): ?array
+{
+    $sql = 'SELECT t.id_transacao, t.tipo, t.descricao, t.valor, t.data_transacao, t.criado_em, c.nome
+            FROM transacoes t
+            INNER JOIN categorias c ON c.id_categoria = t.id_categoria
+            WHERE t.id_transacao = ? AND t.id_usuario = ?';
+    $stmt = mysqli_prepare($conexao, $sql);
+    if (!$stmt) {
+        return null;
+    }
+    mysqli_stmt_bind_param($stmt, 'ii', $idTransacao, $idUsuario);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $id, $tipo, $descricao, $valor, $data, $criado, $categoria);
+
+    $linha = null;
+    if (mysqli_stmt_fetch($stmt)) {
+        $linha = [
+            'id_transacao'   => $id,
+            'tipo'           => $tipo,
+            'descricao'      => $descricao,
+            'valor'          => (float) $valor,
+            'data_transacao' => $data,
+            'criado_em'      => $criado,
+            'categoria'      => $categoria,
+        ];
+    }
+    mysqli_stmt_close($stmt);
+    return $linha;
+}
+
+// Imagens (comprovantes) ligadas a um lançamento do usuário
+function transacao_imagens($conexao, int $idTransacao, int $idUsuario): array
+{
+    $sql = 'SELECT id_imagem, titulo, arquivo
+            FROM imagens
+            WHERE id_transacao = ? AND id_usuario = ?
+            ORDER BY criado_em DESC';
+    $stmt = mysqli_prepare($conexao, $sql);
+    if (!$stmt) {
+        return [];
+    }
+    mysqli_stmt_bind_param($stmt, 'ii', $idTransacao, $idUsuario);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $id, $titulo, $arquivo);
+
+    $lista = [];
+    while (mysqli_stmt_fetch($stmt)) {
+        $lista[] = ['id_imagem' => $id, 'titulo' => $titulo, 'arquivo' => $arquivo];
+    }
+    mysqli_stmt_close($stmt);
+    return $lista;
+}
+
+// CRUD - READ: dados de um lançamento do usuário para preencher o formulário de edição
+function transacao_para_edicao($conexao, int $idTransacao, int $idUsuario): ?array
+{
+    $sql = 'SELECT id_categoria, tipo, descricao, valor, data_transacao
+            FROM transacoes
+            WHERE id_transacao = ? AND id_usuario = ?';
+    $stmt = mysqli_prepare($conexao, $sql);
+    if (!$stmt) {
+        return null;
+    }
+    mysqli_stmt_bind_param($stmt, 'ii', $idTransacao, $idUsuario);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $idCategoria, $tipo, $descricao, $valor, $data);
+
+    $linha = null;
+    if (mysqli_stmt_fetch($stmt)) {
+        $linha = [
+            'id_categoria'   => $idCategoria,
+            'tipo'           => $tipo,
+            'descricao'      => $descricao,
+            'valor'          => (float) $valor,
+            'data_transacao' => $data,
+        ];
+    }
+    mysqli_stmt_close($stmt);
+    return $linha;
+}
+
+// CRUD - UPDATE: atualiza um lançamento (só se for do próprio usuário)
+function transacao_atualizar($conexao, int $idTransacao, int $idUsuario, int $idCategoria, string $tipo, string $descricao, float $valor, string $data): bool
+{
+    $sql = 'UPDATE transacoes
+            SET id_categoria = ?, tipo = ?, descricao = ?, valor = ?, data_transacao = ?
+            WHERE id_transacao = ? AND id_usuario = ?';
+    $stmt = mysqli_prepare($conexao, $sql);
+    if (!$stmt) {
+        return false;
+    }
+    mysqli_stmt_bind_param($stmt, 'issdsii', $idCategoria, $tipo, $descricao, $valor, $data, $idTransacao, $idUsuario);
+    $ok = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    return $ok;
+}
+

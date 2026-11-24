@@ -5,7 +5,7 @@ require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/transacoes.php';
 require_once dirname(__DIR__) . '/conecta.php';
 
-exigir_login();
+exigir_nivel_exato(NIVEL_USUARIO);
 
 $idUsuario = (int) $_SESSION['usuario_id'];
 
@@ -96,12 +96,20 @@ require dirname(__DIR__) . '/includes/cabecalho.php';
                 <tr>
                     <td><?= e(date('d/m/Y', strtotime($t['data_transacao']))) ?></td>
                     <td><?= e($t['descricao']) ?></td>
-                    <td><?= e($t['categoria']) ?></td>
+                    <td>
+                        <?php if (!empty($t['imagem'])): ?>
+                            <img class="miniatura pequena" src="../uploads/<?= e($t['imagem']) ?>" alt="">
+                        <?php endif; ?>
+                        <?= e($t['categoria']) ?>
+                    </td>
                     <td><?= $ehReceita ? 'Receita' : 'Despesa' ?></td>
                     <td class="valor <?= $ehReceita ? 'positivo' : 'negativo' ?>">
                         <?= $ehReceita ? '+' : '-' ?> <?= e(moeda($t['valor'])) ?>
                     </td>
-                    <td><a href="detalhes.php?id=<?= (int) $t['id_transacao'] ?>">Detalhes</a></td>
+                    <td>
+                        <a href="detalhes.php?id=<?= (int) $t['id_transacao'] ?>">Detalhes</a> |
+                        <a href="editar_transacao.php?id=<?= (int) $t['id_transacao'] ?>">Editar</a>
+                    </td>
                 </tr>
             <?php endforeach; ?>
             </tbody>

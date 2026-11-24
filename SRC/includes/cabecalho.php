@@ -1,14 +1,7 @@
 <?php
-
-require_once __DIR__ . '/funcoes.php';
-require_once __DIR__ . '/auth.php';
-
-iniciar_sessao();
-
-// $raiz = '' quando a página está em SRC/ e '../' quando está em SRC/pages/
-$raiz   = $raiz ?? '';
-$titulo = $titulo ?? 'Meu Bolso';
-$pg     = ($raiz === '') ? 'pages/' : '';
+// Cabeçalho comum a todas as páginas.
+// Variáveis esperadas: $titulo e $raiz ('' em SRC/ e '../' em SRC/pages/)
+$pg = ($raiz === '') ? 'pages/' : '';
 ?>
 <!DOCTYPE html>
 <html lang="pt-BR">
@@ -23,15 +16,18 @@ $pg     = ($raiz === '') ? 'pages/' : '';
     <a class="marca" href="<?= e($raiz) ?>index.php">💰 Meu Bolso</a>
     <nav>
         <?php if (usuario_logado()): ?>
-            <a href="<?= e($pg) ?>dashboard.php">Dashboard</a>
-            <a href="<?= e($pg) ?>historico.php">Histórico</a>
-            <a href="<?= e($pg) ?>graficos.php">Gráficos</a>
-            <a href="<?= e($pg) ?>imagens.php">Imagens</a>
-            <?php if (nivel_atual() >= NIVEL_GERENTE): ?>
-                <a href="<?= e($pg) ?>relatorio_geral.php">Relatório geral</a>
+            <?php if (nivel_atual() === NIVEL_USUARIO): ?>
+                <a href="<?= e($pg) ?>dashboard.php">Dashboard</a>
+                <a href="<?= e($pg) ?>historico.php">Histórico</a>
+                <a href="<?= e($pg) ?>graficos.php">Gráficos</a>
             <?php endif; ?>
-            <?php if (nivel_atual() >= NIVEL_ADMIN): ?>
+            <?php if (nivel_atual() === NIVEL_GERENTE): ?>
+                <a href="<?= e($pg) ?>relatorio_geral.php">Relatório de cadastros</a>
+            <?php endif; ?>
+            <?php if (nivel_atual() === NIVEL_ADMIN): ?>
                 <a href="<?= e($pg) ?>usuarios.php">Usuários</a>
+                <a href="<?= e($pg) ?>categorias.php">Categorias</a>
+                <a href="<?= e($pg) ?>imagens.php">Imagens</a>
             <?php endif; ?>
             <a href="<?= e($pg) ?>perfil.php">Perfil</a>
             <a class="sair" href="<?= e($pg) ?>logout.php">Sair (<?= e(nome_nivel(nivel_atual())) ?>)</a>
@@ -41,4 +37,4 @@ $pg     = ($raiz === '') ? 'pages/' : '';
         <?php endif; ?>
     </nav>
 </header>
-<main class="conteudo">
+<main class="conteudo"></main>

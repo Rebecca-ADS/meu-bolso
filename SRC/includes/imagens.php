@@ -1,88 +1,90 @@
 <?php
 
-const IMAGEM_MAX_BYTES = 2097152; // 2 MB
+// CRUD de imagens (biblioteca do sistema, gerenciada pelo administrador)
+// Create: imagem_salvar | Read: imagem_listar e imagem_buscar
+// Update: imagem_atualizar | Delete: imagem_excluir
 
-function imagem_listar($conexao, int $idUsuario): array
+// CRUD - READ: lista a biblioteca de imagens (ordenável) com a quantidade de categorias que usam cada uma
+function imagem_listar($conexao, string $ordem = 'criado', string $dir = 'desc'): array
 {
-    $st = mysqli_prepare(
-        $conexao,
-        'SELECT i.id_imagem, i.titulo, i.arquivo, i.criado_em, t.descricao
-         FROM imagens i
-         LEFT JOIN transacoes t ON t.id_transacao = i.id_transacao
-         WHERE i.id_usuario = ?
-         ORDER BY i.id_imagem DESC'
-    );
-    mysqli_stmt_bind_param($st, 'i', $idUsuario);
-    mysqli_stmt_execute($st);
-    mysqli_stmt_bind_result($st, $id, $titulo, $arquivo, $criado, $descTransacao);
+    // A coluna de ordenação vem de uma lista fixa, nunca direto do usuário
+    $colunas = ['titulo' => 'i.titulo', 'criado' => 'i.criado_em', 'uso' => 'uso'];
+    $colunaSql = $colunas[$ordem] ?? 'i.criado_em';
+    $direcaoSql = ($dir === 'asc') ? 'ASC' : 'DESC';
+
+    $sql = "SELECT i.id_imagem, i.titulo, i.arquivo, i.criado_em, COUNT(c.id_categoria) AS uso
+            FROM imagens i
+            LEFT JOIN categorias c ON c.id_imagem = i.id_imagem
+            WHERE i.id_transacao IS NULL
+            GROUP BY i.id_imagem, i.titulo, i.arquivo, i.criado_em
+            ORDER BY $colunaSql $direcaoSql, i.id_imagem DESC";
+    $resultado = mysqli_query($conexao, $sql);
 
     $lista = [];
-    while (mysqli_stmt_fetch($st)) {
-        $lista[] = [
-            'id_imagem' => $id,
-            'titulo'    => $titulo,
-            'arquivo'   => $arquivo,
-            'criado_em' => $criado,
-            'transacao' => $descTransacao,
-        ];
+    if ($resultado) {
+        while ($linha = mysqli_fetch_assoc($resultado)) {
+            $lista[] = $linha;
+        }
+        mysqli_free_result($resultado);
     }
-    mysqli_stmt_close($st);
-
     return $lista;
 }
 
-function imagem_salvar($conexao, int $idUsuario, ?int $idTransacao, string $titulo, string $arquivo): bool
+// CRUD - READ: busca uma imagem (null se não existir)
+function imagem_buscar($conexao, int $idImagem): ?array
 {
-    $st = mysqli_prepare(
-        $conexao,
-        'INSERT INTO imagens (id_usuario, id_transacao, titulo, arquivo) VALUES (?, ?, ?, ?)'
-    );
-    mysqli_stmt_bind_param($st, 'iiss', $idUsuario, $idTransacao, $titulo, $arquivo);
-    $ok = mysqli_stmt_execute($st);
-    mysqli_stmt_close($st);
+    $stmt = mysqli_prepare($conexao, 'SELECT id_imagem, titulo, arquivo FROM imagens WHERE id_imagem = ? AND id_transacao IS NULL');
+    if (!$stmt) {
+        return null;
+    }
+    mysqli_stmt_bind_param($stmt, 'i', $idImagem);
+    mysqli_stmt_execute($stmt);
+    mysqli_stmt_bind_result($stmt, $id, $titulo, $arquivo);
 
+    $linha = null;
+    if (mysqli_stmt_fetch($stmt)) {
+        $linha = ['id_imagem' => $id, 'titulo' => $titulo, 'arquivo' => $arquivo];
+    }
+    mysqli_stmt_close($stmt);
+    return $linha;
+}
+
+// CRUD - CREATE: grava os dados de uma imagem já enviada
+function imagem_salvar($conexao, int $idUsuario, string $titulo, string $arquivo): bool
+{
+    $stmt = mysqli_prepare($conexao, 'INSERT INTO imagens (id_usuario, titulo, arquivo) VALUES (?, ?, ?)');
+    if (!$stmt) {
+        return false;
+    }
+    mysqli_stmt_bind_param($stmt, 'iss', $idUsuario, $titulo, $arquivo);
+    $ok = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
     return $ok;
 }
 
-// Nome do arquivo de uma imagem do usuário (null se não for dele)
-function imagem_arquivo($conexao, int $idImagem, int $idUsuario): ?string
+// CRUD - UPDATE: atualiza título e arquivo
+function imagem_atualizar($conexao, int $idImagem, string $titulo, string $arquivo): bool
 {
-    $st = mysqli_prepare(
-        $conexao,
-        'SELECT arquivo FROM imagens WHERE id_imagem = ? AND id_usuario = ? LIMIT 1'
-    );
-    mysqli_stmt_bind_param($st, 'ii', $idImagem, $idUsuario);
-    mysqli_stmt_execute($st);
-    mysqli_stmt_bind_result($st, $arquivo);
-    $achou = mysqli_stmt_fetch($st);
-    mysqli_stmt_close($st);
-
-    return $achou ? $arquivo : null;
+    $stmt = mysqli_prepare($conexao, 'UPDATE imagens SET titulo = ?, arquivo = ? WHERE id_imagem = ?');
+    if (!$stmt) {
+        return false;
+    }
+    mysqli_stmt_bind_param($stmt, 'ssi', $titulo, $arquivo, $idImagem);
+    $ok = mysqli_stmt_execute($stmt);
+    mysqli_stmt_close($stmt);
+    return $ok;
 }
 
-function imagem_excluir($conexao, int $idImagem, int $idUsuario): bool
+// CRUD - DELETE: remove o registro (as categorias que usavam a imagem ficam sem imagem)
+function imagem_excluir($conexao, int $idImagem): bool
 {
-    $st = mysqli_prepare($conexao, 'DELETE FROM imagens WHERE id_imagem = ? AND id_usuario = ?');
-    mysqli_stmt_bind_param($st, 'ii', $idImagem, $idUsuario);
-    mysqli_stmt_execute($st);
-    $apagou = mysqli_stmt_affected_rows($st) > 0;
-    mysqli_stmt_close($st);
-
+    $stmt = mysqli_prepare($conexao, 'DELETE FROM imagens WHERE id_imagem = ?');
+    if (!$stmt) {
+        return false;
+    }
+    mysqli_stmt_bind_param($stmt, 'i', $idImagem);
+    mysqli_stmt_execute($stmt);
+    $apagou = mysqli_stmt_affected_rows($stmt) > 0;
+    mysqli_stmt_close($stmt);
     return $apagou;
-}
-
-// Confere se o lançamento pertence ao usuário
-function transacao_pertence($conexao, int $idTransacao, int $idUsuario): bool
-{
-    $st = mysqli_prepare(
-        $conexao,
-        'SELECT 1 FROM transacoes WHERE id_transacao = ? AND id_usuario = ? LIMIT 1'
-    );
-    mysqli_stmt_bind_param($st, 'ii', $idTransacao, $idUsuario);
-    mysqli_stmt_execute($st);
-    mysqli_stmt_store_result($st);
-    $existe = mysqli_stmt_num_rows($st) > 0;
-    mysqli_stmt_close($st);
-
-    return $existe;
 }

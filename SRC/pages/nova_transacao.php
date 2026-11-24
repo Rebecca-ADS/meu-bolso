@@ -5,7 +5,7 @@ require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/transacoes.php';
 require_once dirname(__DIR__) . '/conecta.php';
 
-exigir_login();
+exigir_nivel_exato(NIVEL_USUARIO);
 
 $idUsuario = (int) $_SESSION['usuario_id'];
 $categorias = categoria_listar($conexao);

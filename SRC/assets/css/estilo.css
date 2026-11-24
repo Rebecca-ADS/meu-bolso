@@ -43,12 +43,13 @@ body {
 
 /* ---------- Cartões, formulários e botões ---------- */
 .cartao { background: #fff; border-radius: 10px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,.08); margin-bottom: 20px; }
-.cartao.estreito { max-width: 420px; margin-left: auto; margin-right: auto; }
+.cartao.estreito { max-width: 520px; margin-left: auto; margin-right: auto; padding: 32px; }
+.cartao h1 { font-size: 1.7rem; margin-top: 0; }
 
-.campo { margin-bottom: 14px; }
-.campo label { display: block; margin-bottom: 4px; font-weight: bold; }
+.campo { margin-bottom: 16px; }
+.campo label { display: block; margin-bottom: 6px; font-weight: bold; font-size: 1.05rem; }
 .campo input, .campo select, .campo textarea {
-    width: 100%; padding: 10px; border: 1px solid #c5ccd6; border-radius: 6px; font-size: 1rem;
+    width: 100%; padding: 13px 14px; border: 1px solid #c5ccd6; border-radius: 8px; font-size: 1.05rem;
 }
 
 button, .botao {
@@ -56,7 +57,7 @@ button, .botao {
     padding: 10px 18px; font-size: 1rem; cursor: pointer; text-decoration: none;
 }
 button:hover, .botao:hover { background: #256528; }
-button.cheio { width: 100%; }
+button.cheio { width: 100%; padding: 13px 18px; font-size: 1.05rem; }
 .botao.perigo, button.perigo { background: #c62828; }
 .botao.neutro { background: #1f3a5f; }
 
@@ -92,6 +93,11 @@ td a { color: #0866c6; }
 .imagem-item { margin: 0; background: #fff; border-radius: 10px; padding: 12px; box-shadow: 0 2px 8px rgba(0,0,0,.08); }
 .imagem-item img { width: 100%; height: 160px; object-fit: cover; border-radius: 6px; }
 .imagem-item figcaption { margin: 8px 0; font-size: .9rem; }
+
+/* ---------- Miniaturas (tabelas de imagens e categorias) ---------- */
+.miniatura { width: 44px; height: 44px; object-fit: cover; border-radius: 8px; display: block; }
+.miniatura.grande { width: 120px; height: 120px; }
+.miniatura.pequena { width: 28px; height: 28px; display: inline-block; vertical-align: middle; margin-right: 8px; }
 
 /* ---------- Cofrinho da tela de login ---------- */
 .mascote-img { display: block; width: 220px; max-width: 60%; margin: 12px auto 0; }

@@ -5,11 +5,11 @@ require_once dirname(__DIR__) . '/includes/auth.php';
 require_once dirname(__DIR__) . '/includes/transacoes.php';
 require_once dirname(__DIR__) . '/conecta.php';
 
-exigir_login();
+exigir_nivel_exato(NIVEL_USUARIO);
 
 $idUsuario = (int) $_SESSION['usuario_id'];
 
-// Mês do gráfico de rosca (padrão: mês atual), no formato AAAA-MM
+// Mês do gráfico de pizza (padrão: mês atual), no formato AAAA-MM
 $mes = $_GET['mes'] ?? date('Y-m');
 if (!is_string($mes) || !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $mes)) {
     $mes = date('Y-m');
@@ -17,13 +17,13 @@ if (!is_string($mes) || !preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $mes)) {
 $inicio = $mes . '-01';
 $fim = date('Y-m-t', strtotime($inicio));
 
-// Rosca: despesas por categoria no mês escolhido
+// Pizza: despesas por categoria no mês escolhido
 $despesas = transacao_despesas_por_categoria($conexao, $idUsuario, $inicio, $fim);
 $totalDespesas = 0.0;
-$dadosRosca = [['Categoria', 'Valor']];
+$dadosPizza = [['Categoria', 'Valor']];
 foreach ($despesas as $d) {
     $totalDespesas += $d['total'];
-    $dadosRosca[] = [$d['categoria'], $d['total']];
+    $dadosPizza[] = [$d['categoria'], $d['total']];
 }
 
 // Colunas: receitas x despesas dos últimos 6 meses
@@ -68,9 +68,9 @@ require dirname(__DIR__) . '/includes/cabecalho.php';
 
 <section class="cartao">
     <h2>Despesas por categoria</h2>
-    <?php if (count($dadosRosca) > 1): ?>
+    <?php if (count($dadosPizza) > 1): ?>
         <p>Total de despesas no mês: <strong class="negativo"><?= e(moeda($totalDespesas)) ?></strong></p>
-        <div id="grafico-rosca" style="width: 100%; height: 380px;"></div>
+        <div id="grafico-pizza" style="width: 100%; height: 380px;"></div>
     <?php else: ?>
         <p class="vazio">Nenhuma despesa registrada neste mês.</p>
     <?php endif; ?>
@@ -87,7 +87,7 @@ google.charts.load('current', { packages: ['corechart'] });
 google.charts.setOnLoadCallback(desenhar);
 window.addEventListener('resize', desenhar);
 
-var dadosRosca = <?= json_encode($dadosRosca, $flags) ?>;
+var dadosPizza = <?= json_encode($dadosPizza, $flags) ?>;
 var dadosBarras = <?= json_encode($dadosBarras, $flags) ?>;
 
 function desenhar() {
@@ -97,13 +97,12 @@ function desenhar() {
         prefix: 'R$ ', decimalSymbol: ',', groupingSymbol: '.', fractionDigits: 2
     });
 
-    // Rosca de despesas por categoria
-    var divRosca = document.getElementById('grafico-rosca');
-    if (divRosca && dadosRosca.length > 1) {
-        var tabelaRosca = google.visualization.arrayToDataTable(dadosRosca);
-        formato.format(tabelaRosca, 1);
-        new google.visualization.PieChart(divRosca).draw(tabelaRosca, {
-            pieHole: 0.45,
+    // Pizza de despesas por categoria
+    var divPizza = document.getElementById('grafico-pizza');
+    if (divPizza && dadosPizza.length > 1) {
+        var tabelaPizza = google.visualization.arrayToDataTable(dadosPizza);
+        formato.format(tabelaPizza, 1);
+        new google.visualization.PieChart(divPizza).draw(tabelaPizza, {
             pieSliceText: 'percentage',
             sliceVisibilityThreshold: 0,
             legend: { position: 'right' },

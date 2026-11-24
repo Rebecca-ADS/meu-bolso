@@ -8,7 +8,7 @@ require_once dirname(__DIR__) . '/conecta.php';
 iniciar_sessao();
 
 if (usuario_logado()) {
-    header('Location: dashboard.php');
+    header('Location: ' . pagina_inicial(nivel_atual()));
     exit;
 }
 
@@ -34,7 +34,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $_SESSION['usuario_id'] = (int) $u['id_usuario'];
             $_SESSION['usuario_nome'] = $u['nome'];
             $_SESSION['nivel'] = (int) $u['nivel'];
-            header('Location: dashboard.php');
+            // Cada nível vai para a sua própria página inicial
+            header('Location: ' . pagina_inicial((int) $u['nivel']));
             exit;
         }
         $mensagem = 'E-mail ou senha incorretos.';

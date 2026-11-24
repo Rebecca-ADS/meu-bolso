@@ -5,17 +5,20 @@ require_once __DIR__ . '/includes/auth.php';
 
 iniciar_sessao();
 
+$logado = usuario_logado();
+
 $raiz = '';
 $titulo = 'Início';
 require __DIR__ . '/includes/cabecalho.php';
 ?>
-<section class="cartao">
-    <h1>Bem-vinda ao Meu Bolso</h1>
-    <p>Sistema de controle financeiro pessoal: registre receitas e despesas, acompanhe o histórico e veja seus gastos em gráficos.</p>
+<section class="cartao estreito" style="text-align: center;">
+    <img class="mascote-img" src="assets/img/cofrinho.svg" alt="Cofrinho do Meu Bolso">
+    <h1>Meu Bolso</h1>
+    <p>Controle suas receitas e despesas de forma simples e segura.</p>
 
-    <?php if (usuario_logado()): ?>
+    <?php if ($logado): ?>
         <p>Olá, <strong><?= e($_SESSION['usuario_nome']) ?></strong>!</p>
-        <a class="botao" href="pages/dashboard.php">Ir para o Dashboard</a>
+        <a class="botao" href="pages/<?= e(pagina_inicial(nivel_atual())) ?>">Ir para o meu painel</a>
     <?php else: ?>
         <a class="botao" href="pages/login.php">Entrar</a>
         <a class="botao neutro" href="pages/cadastro.php">Criar conta</a>

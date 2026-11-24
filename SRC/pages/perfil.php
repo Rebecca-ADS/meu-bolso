@@ -1,190 +1,125 @@
 <?php
 
-declare(strict_types=1);
-
-session_start();
-
-if (!isset($_SESSION['usuario_id'])) {
-    header('Location: login.php');
-    exit;
-}
-
+require_once dirname(__DIR__) . '/includes/funcoes.php';
+require_once dirname(__DIR__) . '/includes/auth.php';
+require_once dirname(__DIR__) . '/includes/usuarios.php';
 require_once dirname(__DIR__) . '/conecta.php';
-require_once dirname(__DIR__) . '/classes/Usuario.php';
 
-if (empty($_SESSION['csrf_token'])) {
-    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-}
+exigir_login();
 
 $idUsuario = (int) $_SESSION['usuario_id'];
-$usuarioObj = new Usuario($pdo);
-$dados = $usuarioObj->buscarPorId($idUsuario);
+$usuario = usuario_buscar($conexao, $idUsuario);
 
-if ($dados === null) {
+if ($usuario === null) {
     header('Location: logout.php');
     exit;
 }
 
-$nome = $dados['nome'];
-$email = $dados['email'];
-$mensagem = '';
-$erro = false;
+$flash = $_SESSION['flash'] ?? '';
+unset($_SESSION['flash']);
+$erroNome = '';
+$erroSenha = '';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $token = $_POST['csrf_token'] ?? '';
-    $nomePost = $_POST['nome'] ?? '';
-    $emailPost = $_POST['email'] ?? '';
+    $acao = $_POST['acao'] ?? '';
 
-    if (!is_string($token) || !hash_equals($_SESSION['csrf_token'], $token)) {
-        $mensagem = 'Formulário inválido. Atualize a página e tente novamente.';
-        $erro = true;
-    } elseif (!is_string($nomePost) || !is_string($emailPost)) {
-        $mensagem = 'Dados inválidos.';
-        $erro = true;
-    } else {
-        $nome = trim($nomePost);
-        $email = mb_strtolower(trim($emailPost), 'UTF-8');
+    if (!csrf_valido($_POST['csrf_token'] ?? null)) {
+        $erroNome = 'Formulário inválido. Atualize a página e tente novamente.';
 
-        if (
-            $nome === '' || mb_strlen($nome, 'UTF-8') > 100 ||
-            !filter_var($email, FILTER_VALIDATE_EMAIL) ||
-            mb_strlen($email, 'UTF-8') > 150
-        ) {
-            $mensagem = 'Confira o nome e o e-mail.';
-            $erro = true;
+    } elseif ($acao === 'nome') {
+        $nome = $_POST['nome'] ?? '';
+        $nome = is_string($nome) ? trim($nome) : '';
+
+        if ($nome === '' || mb_strlen($nome, 'UTF-8') > 100) {
+            $erroNome = 'Informe um nome com até 100 caracteres.';
+        } elseif (usuario_atualizar_nome($conexao, $idUsuario, $nome)) {
+            $_SESSION['usuario_nome'] = $nome;
+            $_SESSION['flash'] = 'Nome atualizado com sucesso.';
+            header('Location: perfil.php');
+            exit;
         } else {
-            try {
-                if ($usuarioObj->atualizarPerfil($idUsuario, $nome, $email)) {
-                    $_SESSION['usuario_nome'] = $nome;
-                    $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-                    $mensagem = 'Perfil atualizado com sucesso!';
-                } else {
-                    $mensagem = 'Este e-mail já está em uso por outra conta.';
-                    $erro = true;
-                }
-            } catch (Throwable $e) {
-                error_log('Erro ao atualizar perfil: ' . $e->getMessage());
-                $mensagem = 'Não foi possível salvar agora. Tente novamente.';
-                $erro = true;
-            }
+            $erroNome = 'Não foi possível atualizar o nome agora.';
+        }
+
+    } elseif ($acao === 'senha') {
+        $atual = $_POST['senha_atual'] ?? '';
+        $nova = $_POST['senha_nova'] ?? '';
+        $confirmar = $_POST['senha_confirmar'] ?? '';
+
+        if (!is_string($atual) || !is_string($nova) || !is_string($confirmar)) {
+            $erroSenha = 'Dados inválidos.';
+        } elseif (strlen($nova) < 8 || strlen($nova) > 4096) {
+            $erroSenha = 'A nova senha deve ter no mínimo 8 caracteres.';
+        } elseif ($nova !== $confirmar) {
+            $erroSenha = 'A confirmação não é igual à nova senha.';
+        } elseif (usuario_autenticar($conexao, $usuario['email'], $atual) === null) {
+            $erroSenha = 'A senha atual está incorreta.';
+        } elseif (usuario_trocar_senha($conexao, $idUsuario, $usuario['email'], $nova)) {
+            session_regenerate_id(true);
+            $_SESSION['flash'] = 'Senha alterada com sucesso.';
+            header('Location: perfil.php');
+            exit;
+        } else {
+            $erroSenha = 'Não foi possível alterar a senha agora.';
         }
     }
 }
 
-function e(string $texto): string
-{
-    return htmlspecialchars($texto, ENT_QUOTES, 'UTF-8');
-}
+$raiz = '../';
+$titulo = 'Perfil';
+require dirname(__DIR__) . '/includes/cabecalho.php';
 ?>
-<!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Perfil | Meu Bolso</title>
+<h1>Meu perfil</h1>
 
-    <style>
-        * { box-sizing: border-box; }
+<?php if ($flash !== ''): ?><p class="aviso ok" role="status"><?= e($flash) ?></p><?php endif; ?>
 
-        body { margin: 0; background: #f4f7fb; color: #243047; font-family: Arial, sans-serif; }
+<section class="cartao">
+    <h2>Meus dados</h2>
 
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            padding: 18px 8%;
-            background: #173b67;
-            color: #fff;
-        }
+    <?php if ($erroNome !== ''): ?><p class="aviso erro" role="alert"><?= e($erroNome) ?></p><?php endif; ?>
 
-        header h1 { margin: 0; font-size: 24px; }
-        header a { color: #fff; }
+    <form method="POST" action="">
+        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+        <input type="hidden" name="acao" value="nome">
 
-        main { max-width: 520px; margin: 32px auto; padding: 0 16px; }
-
-        .painel { padding: 28px; background: #fff; border-radius: 14px; box-shadow: 0 4px 18px #00000010; }
-        h2 { margin: 0 0 20px; }
-
-        .mensagem { margin-bottom: 18px; padding: 12px; border-radius: 8px; line-height: 1.4; }
-        .mensagem.erro { color: #842029; background: #f8d7da; }
-        .mensagem.ok { color: #0f5132; background: #d1e7dd; }
-
-        .campo { margin-bottom: 18px; }
-        label { display: block; margin-bottom: 8px; font-weight: bold; }
-
-        input {
-            width: 100%;
-            min-height: 44px;
-            padding: 11px 12px;
-            border: 1px solid #cbd5e1;
-            border-radius: 7px;
-            font-size: 16px;
-        }
-
-        input:focus { outline: 2px solid #8bbcf0; outline-offset: 1px; }
-
-        button {
-            width: 100%;
-            min-height: 46px;
-            border: 0;
-            border-radius: 7px;
-            background: #216eaf;
-            color: #fff;
-            font-size: 16px;
-            cursor: pointer;
-        }
-
-        button:hover { background: #185b94; }
-        .info { margin-top: 18px; font-size: 14px; color: #65738a; text-align: center; }
-    </style>
-</head>
-<body>
-    <header>
-        <h1>Meu Bolso</h1>
-        <div>
-            <a href="dashboard.php">Dashboard</a> |
-            <a href="historico.php">Histórico</a> |
-            <a href="graficos.php">Gráficos</a> |
-            <a href="perfil.php">Perfil</a> |
-            <a href="configuracoes.php">Configurações</a> |
-            <a href="logout.php">Sair</a>
+        <div class="campo">
+            <label for="nome">Nome</label>
+            <input type="text" id="nome" name="nome" maxlength="100" value="<?= e($usuario['nome']) ?>" required>
         </div>
-    </header>
+        <div class="campo">
+            <label for="email">E-mail (seu login)</label>
+            <input type="email" id="email" value="<?= e($usuario['email']) ?>" disabled>
+        </div>
+        <div class="campo">
+            <label for="nivel">Nível de acesso</label>
+            <input type="text" id="nivel" value="<?= e($usuario['nivel'] . ' - ' . nome_nivel((int) $usuario['nivel'])) ?>" disabled>
+        </div>
+        <button type="submit">Salvar nome</button>
+    </form>
+</section>
 
-    <main>
-        <section class="painel">
-            <h2>Meu perfil</h2>
+<section class="cartao">
+    <h2>Alterar senha</h2>
 
-            <?php if ($mensagem !== ''): ?>
-                <p class="mensagem <?= $erro ? 'erro' : 'ok' ?>" role="status">
-                    <?= e($mensagem) ?>
-                </p>
-            <?php endif; ?>
+    <?php if ($erroSenha !== ''): ?><p class="aviso erro" role="alert"><?= e($erroSenha) ?></p><?php endif; ?>
 
-            <form action="" method="POST">
-                <input type="hidden" name="csrf_token" value="<?= e($_SESSION['csrf_token']) ?>">
+    <form method="POST" action="">
+        <input type="hidden" name="csrf_token" value="<?= e(csrf_token()) ?>">
+        <input type="hidden" name="acao" value="senha">
 
-                <div class="campo">
-                    <label for="nome">Nome completo</label>
-                    <input type="text" id="nome" name="nome" maxlength="100"
-                           value="<?= e($nome) ?>" autocomplete="name" required>
-                </div>
-
-                <div class="campo">
-                    <label for="email">E-mail</label>
-                    <input type="email" id="email" name="email" maxlength="150"
-                           value="<?= e($email) ?>" autocomplete="email" required>
-                </div>
-
-                <button type="submit">Salvar alterações</button>
-            </form>
-
-            <p class="info">
-                Conta criada em <?= e(date('d/m/Y', strtotime($dados['criado_em']))) ?>
-            </p>
-        </section>
-    </main>
-</body>
-</html>
+        <div class="campo">
+            <label for="senha_atual">Senha atual</label>
+            <input type="password" id="senha_atual" name="senha_atual" maxlength="4096" required>
+        </div>
+        <div class="campo">
+            <label for="senha_nova">Nova senha (mínimo de 8 caracteres)</label>
+            <input type="password" id="senha_nova" name="senha_nova" minlength="8" maxlength="4096" required>
+        </div>
+        <div class="campo">
+            <label for="senha_confirmar">Confirmar nova senha</label>
+            <input type="password" id="senha_confirmar" name="senha_confirmar" minlength="8" maxlength="4096" required>
+        </div>
+        <button type="submit">Alterar senha</button>
+    </form>
+</section>
+<?php require dirname(__DIR__) . '/includes/rodape.php'; ?>

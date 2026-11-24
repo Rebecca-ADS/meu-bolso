@@ -40,6 +40,18 @@ function nome_nivel(int $nivel): string
     return 'Usuário';
 }
 
+// Página em que cada nível começa depois do login
+function pagina_inicial(int $nivel): string
+{
+    if ($nivel === NIVEL_ADMIN) {
+        return 'usuarios.php';
+    }
+    if ($nivel === NIVEL_GERENTE) {
+        return 'relatorio_geral.php';
+    }
+    return 'dashboard.php';
+}
+
 function exigir_login(string $destino = 'login.php'): void
 {
     iniciar_sessao();
@@ -49,12 +61,22 @@ function exigir_login(string $destino = 'login.php'): void
     }
 }
 
-// Bloqueia quem não tem o nível mínimo exigido pela página
+// Bloqueia quem tem nível MENOR que o mínimo (ex.: relatório do gerente também serve ao admin)
 function exigir_nivel(int $minimo, string $destino = 'login.php'): void
 {
     exigir_login($destino);
     if (nivel_atual() < $minimo) {
         http_response_code(403);
         exit('Acesso negado: seu nível não permite acessar esta página.');
+    }
+}
+
+// Área exclusiva de UM nível (ex.: finanças pessoais só para o usuário comum)
+function exigir_nivel_exato(int $nivel, string $destino = 'login.php'): void
+{
+    exigir_login($destino);
+    if (nivel_atual() !== $nivel) {
+        http_response_code(403);
+        exit('Acesso negado: esta área é exclusiva do perfil ' . nome_nivel($nivel) . '.');
     }
 }
