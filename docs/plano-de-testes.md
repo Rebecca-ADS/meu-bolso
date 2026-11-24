@@ -78,4 +78,3 @@ Contas de teste: `conta.a@teste.com` e `conta.b@teste.com` (fictícias).
 |---|---|---|---|---|
 | B01 | Link "Voltar" do cadastro dava "Not Found" | Teste manual do cadastro | `href` corrigido para `../index.php` | Corrigido |
 | B02 | `declare(strict_types)` fora do topo do `conecta.php` | Primeiro acesso ao cadastro | Movido para a linha 3 | Corrigido |
-| B03 | Classe `Relatorio.php` não versionada | Conferência do GitHub | Arquivo adicionado ao Git | Corrigido |
