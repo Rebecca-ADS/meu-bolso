@@ -1,2 +1,6 @@
 ﻿SRC/conecta.php
 SRC/teste_conexao.php
+
+SRC/uploads/*
+SRC/uploads/*
+!SRC/uploads/.htaccess
